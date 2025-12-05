@@ -298,7 +298,9 @@ export default function CircuitBuilderFlow() {
                 position: {
                     x: node.position.x + xOffset,
                     y: node.position.y + yOffset
-                }
+                },
+                // Fix sticky protein: ensure no selected state carries over
+                selected: false
             };
         });
 
@@ -315,20 +317,74 @@ export default function CircuitBuilderFlow() {
             };
         });
 
-
-        // Add the new proteins
+        // Handle potential protein label conflicts by generating unique names
+        const labelMap: {[originalLabel: string]: string} = {};
         const mergedProteins: {[label: string]: ProteinData} = {...proteins};
 
-        // Handle potential protein label conflicts
-        Object.entries(template.proteins).forEach(([label, proteinData]) => {
-            mergedProteins[label] = proteinData;
+        // Helper function to extract base name and number (e.g., "Gene1" -> "Gene", 1)
+        const parseLabel = (label: string): {base: string, num: number} => {
+            const match = label.match(/^(.+?)(\d+)$/);
+            if (match) {
+                return { base: match[1], num: parseInt(match[2], 10) };
+            }
+            return { base: label, num: 0 };
+        };
+
+        // Find the highest number used for each base name
+        const maxNumbers: {[base: string]: number} = {};
+        Object.keys(mergedProteins).forEach((existingLabel) => {
+            const { base, num } = parseLabel(existingLabel);
+            if (!maxNumbers[base] || num > maxNumbers[base]) {
+                maxNumbers[base] = num;
+            }
+        });
+
+        // Generate unique labels for proteins by incrementing from the highest number
+        Object.entries(template.proteins).forEach(([originalLabel, proteinData]) => {
+            const { base, num } = parseLabel(originalLabel);
+            const currentMax = maxNumbers[base] || 0;
+            const newNum = Math.max(num, currentMax + 1);
+            const newLabel = `${base}${newNum}`;
+            
+            labelMap[originalLabel] = newLabel;
+            maxNumbers[base] = newNum; // Update max for subsequent proteins with same base
+            
+            mergedProteins[newLabel] = {
+                ...proteinData,
+                label: newLabel
+            };
+        });
+
+        // Update node data with new unique labels
+        newNodes.forEach((node) => {
+            if (node.type === 'custom' && node.data?.label) {
+                const originalLabel = node.data.label as string;
+                if (labelMap[originalLabel]) {
+                    node.data = {
+                        ...node.data,
+                        label: labelMap[originalLabel]
+                    };
+                }
+            }
+        });
+
+        // Update hill coefficients with new unique labels
+        const updatedHillCoefficients: hillCoefficientType[] = template.hillCoefficients.map((coeff) => {
+            // Hill coefficient IDs are in format "source-target"
+            const [source, target] = coeff.id.split('-');
+            const newSource = labelMap[source] || source;
+            const newTarget = labelMap[target] || target;
+            return {
+                ...coeff,
+                id: `${newSource}-${newTarget}`
+            };
         });
 
         // Update state
         setNodes((prevNodes: AppNode[]) => [...prevNodes, ...newNodes]);
         setEdges((prevEdges: Edge[]) => [...prevEdges, ...newEdges]);
         setProteins(() => mergedProteins);
-        setHillCoefficients((prevCoeffs: hillCoefficientType[]) => [...prevCoeffs, ...template.hillCoefficients]);
+        setHillCoefficients((prevCoeffs: hillCoefficientType[]) => [...prevCoeffs, ...updatedHillCoefficients]);
     };
 
     const handleApplyCircuitTemplate = useCallback((template: CircuitTemplate): void => {
@@ -343,12 +399,50 @@ export default function CircuitBuilderFlow() {
             setProteins,
             setHillCoefficients
         });
+        resetSelectedStateData();
     }, [nodes, edges, proteins, nodeIdRef, gateIdRef, setNodes, setEdges, setProteins]);
 
     // Display output window
     const renderOutputWindow = () => {
         return <OutputWindow/>;
     };
+
+    // Handle Delete / Backspace key to remove selected node or edge
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement;
+            const isTyping =
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable;
+
+            if (isTyping) return;
+
+            if (event.key !== "Backspace" && event.key !== "Delete") return;
+
+            // Prevent browser navigation
+            event.preventDefault();
+
+            // Access current selection
+            const { selectedNodeId, selectedEdgeId } = selection;
+
+            if (selectedNodeId) {
+                setNodes((prev) => prev.filter((n) => n.id !== selectedNodeId));
+                setEdges((prev) =>
+                    prev.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId)
+                );
+                resetSelectedStateData();
+                setActiveTab("properties");
+            } else if (selectedEdgeId) {
+                setEdges((prev) => prev.filter((e) => e.id !== selectedEdgeId));
+                resetSelectedStateData();
+                setActiveTab("properties");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selection, setNodes, setEdges, resetSelectedStateData, setActiveTab]);
 
     return (
         <>

@@ -1,0 +1,87 @@
+{
+  "circuitSettings": {
+    "projectName": "Toggle Switch",
+    "simulationDuration": 20,
+    "numTimePoints": 10
+  },
+  "nodes": [
+    {
+      "id": "0",
+      "type": "custom",
+      "proteinName": "Protein A"
+    },
+    {
+      "id": "1",
+      "type": "custom",
+      "proteinName": "Protein B"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-0-1",
+      "type": "repress",
+      "source": "0",
+      "target": "1"
+    },
+    {
+      "id": "edge-1-0",
+      "type": "repress",
+      "source": "1",
+      "target": "0"
+    }
+  ],
+  "proteins": {
+    "Protein A": {
+      "label": "Protein A",
+      "initialConcentration": 1,
+      "lossRate": 1,
+      "beta": 5,
+      "inputs": 1,
+      "outputs": 1,
+      "inputFunctionType": "steady-state",
+      "inputFunctionData": {
+        "steadyStateValue": 0,
+        "timeStart": 0,
+        "timeEnd": 1,
+        "pulsePeriod": 1,
+        "amplitude": 1,
+        "dutyCycle": 0.5
+      }
+    },
+    "Protein B": {
+      "label": "Protein B",
+      "initialConcentration": 1,
+      "lossRate": 1,
+      "beta": 5,
+      "inputs": 1,
+      "outputs": 1,
+      "inputFunctionType": "steady-state",
+      "inputFunctionData": {
+        "steadyStateValue": 0,
+        "timeStart": 0,
+        "timeEnd": 1,
+        "pulsePeriod": 1,
+        "amplitude": 1,
+        "dutyCycle": 0.5
+      }
+    }
+  },
+  "hillCoefficients": [
+    {
+      "id": "Protein A-Protein A",
+      "value": 1
+    },
+    {
+      "id": "Protein B-Protein B",
+      "value": 1
+    },
+    {
+      "id": "Protein A-Protein B",
+      "value": 2
+    },
+    {
+      "id": "Protein B-Protein A",
+      "value": 2
+    }
+  ]
+}

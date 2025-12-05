@@ -6,3 +6,4 @@ numpy
 biocircuits
 ipython
 pytest
+coverage

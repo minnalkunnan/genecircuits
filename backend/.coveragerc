@@ -1,0 +1,13 @@
+[run]
+branch = True
+# Limit measurement to your app code (adjust as needed)
+source =
+    .
+
+[report]
+# Hide tests and other non-app files from the report
+omit =
+    */test/*
+    */tests/*
+    test_*.py
+    *_test.py

@@ -2,6 +2,7 @@ import { ProteinData } from "../types";
 import {
     Dialog,
     Flex,
+    Text,
     IconButton,
     Grid,
     Button
@@ -41,6 +42,8 @@ export default function CreateProteinWindow({ open, onOpenChange, onCreate }: Pr
     };
     const [newProteinData, setNewProteinData] = useState<ProteinData>(genericNodeData);
     const { showAlert } = useAlert();
+    const [isFormValid, setIsFormValid] = useState<boolean>(true);
+    const [negativeFields, setNegativeFields] = useState<string[]>([]);
 
     const handleCancel = () => {
         setNewProteinData(genericNodeData)
@@ -49,6 +52,10 @@ export default function CreateProteinWindow({ open, onOpenChange, onCreate }: Pr
     const handleCreate = () => {
         if (!newProteinData.label || newProteinData.label.trim() === '') {
             showAlert("Protein label is required");
+            return;
+        }
+        if (!isFormValid) {
+            showAlert('Please fix invalid numeric values before creating the protein');
             return;
         }
       
@@ -66,7 +73,13 @@ export default function CreateProteinWindow({ open, onOpenChange, onCreate }: Pr
                 <Dialog.Description mb="3">Define the properties of your new protein. You can modify these parameters later.</Dialog.Description>
 
                 <Grid columns={{initial: "2"}} gap="4">
-                    <ProteinDataForm mode="create" proteinData={newProteinData} setProteinData={setNewProteinData} />
+                    <ProteinDataForm
+                        mode="create"
+                        proteinData={newProteinData}
+                        setProteinData={setNewProteinData}
+                        onValidityChange={setIsFormValid}
+                        onNegativeFieldsChange={setNegativeFields}
+                    />
                 </Grid>
 
                 <Flex justify="end" gap="3" mt="8">

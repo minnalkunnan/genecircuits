@@ -98,3 +98,16 @@ out/
 
 # logs
 *log.txt
+
+# Ignore coverage data files
+backend/.coverage
+
+
+# Ignore all generated HTML files in backend
+backend/*.html
+backend/test/*.html
+
+#Ignore all text files in simulation test data
+
+backend/test/simulation_test_data/*.txt
+backend/test/simulation_test_data/*.htmlg

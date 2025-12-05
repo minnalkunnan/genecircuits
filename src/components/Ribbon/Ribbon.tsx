@@ -67,6 +67,68 @@ const TopRibbon: React.FC = () => {
 
     // Handler for when user clicks the run simulation button
     const handlePlayClick = async () => {
+        // Validate circuit before starting
+        const validateCircuit = (): string[] => {
+            const errors: string[] = [];
+
+            // Ensure protein (custom) nodes have required fields
+            const proteinNodes = nodes.filter(n => n.type === 'custom');
+            proteinNodes.forEach((node) => {
+                const data: any = node.data;
+                if (!data) {
+                    errors.push(`Protein node ${node.id} is missing data.`);
+                    return;
+                }
+                if (!data.label || String(data.label).trim() === '') {
+                    errors.push(`Protein node ${node.id} is missing a label.`);
+                }
+                // numeric checks
+                ['initialConcentration', 'lossRate', 'beta', 'inputs', 'outputs'].forEach((field) => {
+                    const v = data[field];
+                    if (v === undefined || v === null || Number.isNaN(Number(v))) {
+                        errors.push(`Protein "${data.label || node.id}" has invalid or missing ${field}.`);
+                    }
+                });
+                if (!data.inputFunctionType || String(data.inputFunctionType).trim() === '') {
+                    errors.push(`Protein "${data.label || node.id}" is missing input function type.`);
+                }
+            });
+
+            // Ensure logic gates have at least 2 incoming inputs
+            const gateNodes = nodes.filter(n => n.type === 'and' || n.type === 'or');
+            gateNodes.forEach((gate) => {
+                const incoming = edges.filter(e => e.target === gate.id);
+                if (incoming.length < 2) {
+                    errors.push(`Gate ${gate.id} (${gate.type}) requires 2 inputs but has ${incoming.length}.`);
+                }
+            });
+
+            // Ensure each gate has at least one outgoing connection to a protein (so the gate actually regulates something)
+            gateNodes.forEach((gate) => {
+                const outgoing = edges.filter(e => e.source === gate.id);
+                const hasProteinOutput = outgoing.some((e) => {
+                    const targetNode = nodes.find(n => n.id === e.target);
+                    return targetNode?.type === 'custom';
+                });
+                if (!hasProteinOutput) {
+                    errors.push(`Gate ${gate.id} (${gate.type}) has no output protein. Connect the gate to a protein node so its regulation is applied.`);
+                }
+            });
+
+            // Disallow gate -> gate connections because backend parser expects gates to target proteins
+            edges.forEach((edge) => {
+                const sourceNode = nodes.find(n => n.id === edge.source);
+                const targetNode = nodes.find(n => n.id === edge.target);
+                const sourceIsGate = sourceNode && (sourceNode.type === 'and' || sourceNode.type === 'or');
+                const targetIsGate = targetNode && (targetNode.type === 'and' || targetNode.type === 'or');
+                if (sourceIsGate && targetIsGate) {
+                    errors.push(`Gate-to-gate connection not supported: edge ${edge.id} from ${edge.source} to ${edge.target}. Back-end requires gates to feed proteins (not other gates).`);
+                }
+            });
+
+            return errors;
+        }
+
         if (isRunning) {
             // Abort the running simulation
             abortFetch();
@@ -75,6 +137,12 @@ const TopRibbon: React.FC = () => {
                 setTimeoutId(null);
             }
             setIsRunning(false);
+            return;
+        }
+        // Run validation and show errors if any
+        const validationErrors = validateCircuit();
+        if (validationErrors.length > 0) {
+            showAlert(validationErrors.join('\n'));
             return;
         }
         const circuitJson = formatBackendJson(circuitSettings, nodes, edges, proteins, hillCoefficients);

@@ -7,8 +7,8 @@ import os
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from parser import parse_circuit
-from simulate import run_simulation
+from backend.parser import parse_circuit
+from backend.simulate import run_simulation
 
 # Use non-interactive backend for matplotlib
 matplotlib.use('Agg')

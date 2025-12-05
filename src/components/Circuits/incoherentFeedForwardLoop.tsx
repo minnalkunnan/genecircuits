@@ -15,7 +15,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
             },
             data: {
                 label: "Input",
-                initialConcentration: 0,
+                initialConcentration: 1,
                 lossRate: 0.1,
                 beta: 1,
                 inputs: 0,
@@ -46,7 +46,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
             },
             data: {
                 label: "Intermediate",
-                initialConcentration: 0,
+                initialConcentration: 1,
                 lossRate: 0.2,
                 beta: 1,
                 inputs: 1,
@@ -92,7 +92,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
             },
             data: {
                 label: "Output",
-                initialConcentration: 0,
+                initialConcentration: 1,
                 lossRate: 0.3,
                 beta: 1,
                 inputs: 1,
@@ -156,7 +156,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
     proteins: {
         Input: {
             label: "Input",
-            initialConcentration: 0,
+            initialConcentration: 1,
             lossRate: 0.1,
             beta: 1,
             inputs: 0,
@@ -173,7 +173,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
         },
         Intermediate: {
             label: "Intermediate",
-            initialConcentration: 0,
+            initialConcentration: 1,
             lossRate: 0.2,
             beta: 1,
             inputs: 1,
@@ -190,7 +190,7 @@ export const incoherentFeedForwardLoop: CircuitTemplate =
         },
         Output: {
             label: "Output",
-            initialConcentration: 0,
+            initialConcentration: 1,
             lossRate: 0.3,
             beta: 1,
             inputs: 1,

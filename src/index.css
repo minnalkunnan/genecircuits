@@ -116,3 +116,8 @@
   border-bottom: 2px solid #3b82f6; /* border-blue-500 */
   color: #2563eb; /* text-blue-600 */
 }
+
+.react-flow__controls {
+
+  bottom: 5% !important;
+}

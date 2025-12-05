@@ -42,6 +42,24 @@
             "id": "5",
             "type": "custom",
             "proteinName": "Grape"
+        },
+        {
+            "id": "g2",
+            "type": "and"
+        },
+        {
+            "id": "g3",
+            "type": "or"
+        },
+        {
+            "id": "6",
+            "type": "custom",
+            "proteinName": "TestAA"
+        },
+        {
+            "id": "7",
+            "type": "custom",
+            "proteinName": "TestRR"
         }
     ],
     "edges": [
@@ -86,6 +104,42 @@
             "type": "promote",
             "source": "g1",
             "target": "5"
+        },
+        {
+            "id": "edge-aa-1",
+            "type": "promote",
+            "source": "0",
+            "target": "g2"
+        },
+        {
+            "id": "edge-aa-2",
+            "type": "promote",
+            "source": "1",
+            "target": "g2"
+        },
+        {
+            "id": "edge-g2-6",
+            "type": "promote",
+            "source": "g2",
+            "target": "6"
+        },
+        {
+            "id": "edge-rr-1",
+            "type": "repress",
+            "source": "2",
+            "target": "g3"
+        },
+        {
+            "id": "edge-rr-2",
+            "type": "repress",
+            "source": "3",
+            "target": "g3"
+        },
+        {
+            "id": "edge-g3-7",
+            "type": "promote",
+            "source": "g3",
+            "target": "7"
         }
     ],
     "proteins": {
@@ -156,6 +210,40 @@
                 "amplitude": 81,
                 "dutyCycle": 0.5
             }
+        },
+        "TestAA": {
+            "label": "TestAA",
+            "initialConcentration": 0,
+            "lossRate": 1,
+            "beta": 1,
+            "inputs": 1,
+            "outputs": 1,
+            "inputFunctionType": "steady-state",
+            "inputFunctionData": {
+                "steadyStateValue": 0,
+                "timeStart": 0,
+                "timeEnd": 1,
+                "pulsePeriod": 1,
+                "amplitude": 1,
+                "dutyCycle": 0.5
+            }
+        },
+        "TestRR": {
+            "label": "TestRR",
+            "initialConcentration": 0,
+            "lossRate": 1,
+            "beta": 1,
+            "inputs": 1,
+            "outputs": 1,
+            "inputFunctionType": "steady-state",
+            "inputFunctionData": {
+                "steadyStateValue": 0,
+                "timeStart": 0,
+                "timeEnd": 1,
+                "pulsePeriod": 1,
+                "amplitude": 1,
+                "dutyCycle": 0.5
+            }
         }
     },
     "hillCoefficients": [
@@ -221,6 +309,22 @@
         },
         {
             "id": "Strawberry-Strawberry",
+            "value": 1
+        },
+        {
+            "id": "Orange-TestAA",
+            "value": 1
+        },
+        {
+            "id": "Strawberry-TestAA",
+            "value": 1
+        },
+        {
+            "id": "Grape-TestRR",
+            "value": 1
+        },
+        {
+            "id": "Banana-TestRR",
             "value": 1
         }
     ]

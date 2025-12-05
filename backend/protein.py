@@ -22,9 +22,19 @@ class Protein:
     def getExternalConcentration(self):
         return self.mExternalConc
         
+    # def setExternalConcentration(self, t):
+    #     if self.mExtConcFunc is not None:
+    #         self.mExternalConc = self.mExtConcFunc(t, *self.mExtConcFuncArgs)
+    #     else:
+    #         self.mExternalConc = 0
+    #     return
+
     def setExternalConcentration(self, t):
         if self.mExtConcFunc is not None:
-            self.mExternalConc = self.mExtConcFunc(t, *self.mExtConcFuncArgs)
+            if self.mExtConcFuncArgs is not None:
+                self.mExternalConc = self.mExtConcFunc(t, *self.mExtConcFuncArgs)
+            else:
+                self.mExternalConc = self.mExtConcFunc(t)
         else:
             self.mExternalConc = 0
         return
@@ -69,10 +79,22 @@ class Gate:
         self.regFuncLambda = self.getRegFunc() 
 
     def getRegFunc(self):
+        # additive, use for independent promoters
         if self.mType == "act_hill":
             return lambda p: biocircuits.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill)
+        # multiplicative, use for combinatorial regulation
+        elif self.mType == "act_hill_mult":
+            return lambda p: (
+                biocircuits.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill) * 
+                biocircuits.act_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill)
+            )
         elif self.mType == "rep_hill":
             return lambda p: biocircuits.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill)
+        elif self.mType == "rep_hill_mult":
+            return lambda p: (
+                biocircuits.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill) * 
+                biocircuits.rep_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill)
+            )
         elif self.mType == "aa_and":
             return lambda p: biocircuits.aa_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
         elif self.mType == "aa_or":

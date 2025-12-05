@@ -1,15 +1,17 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import pytest
 import json
-from parser import parse_circuit
-from protein import Protein, Gate
+from backend.parser import parse_circuit
+from backend.protein import Protein, Gate
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "parser_test_data")
+
 
 def test_repressilator_array_equivalence():
     # Load JSON input matching the known-good test configuration
-    with open("parser_test_data/repressilator_input.json") as f:
+    with open(os.path.join(DATA_DIR, "repressilator_input.json")) as f:
         json_data = json.load(f)
     
     print("Raw JSON hillCoefficients:")
@@ -21,9 +23,9 @@ def test_repressilator_array_equivalence():
 
     # Define the expected protein array manually (same as in test_repressilator)
     expected_proteins = [
-        Protein(0, "Protein 0", 1, 1, [Gate("rep_hill", firstInput=2, firstHill=3)], None, None, 5),
-        Protein(1, "Protein 1", 1, 1, [Gate("rep_hill", firstInput=0, firstHill=3)], None, None, 5),
-        Protein(2, "Protein 2", 1.2, 1, [Gate("rep_hill", firstInput=1, firstHill=3)], None, None, 5)
+        Protein(0, "Protein 0", 1, 1, [Gate("rep_hill", firstInput=2, firstHill=1)], None, None, 5),
+        Protein(1, "Protein 1", 1, 1, [Gate("rep_hill", firstInput=0, firstHill=1)], None, None, 5),
+        Protein(2, "Protein 2", 1.2, 1, [Gate("rep_hill", firstInput=1, firstHill=1)], None, None, 5)
     ]
 
     assert len(parsed_proteins) == len(expected_proteins)

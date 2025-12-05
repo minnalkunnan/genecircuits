@@ -66,6 +66,7 @@ const PropertiesWindow: React.FC = () => {
     })();
     const [localProteinData, setLocalProteinData] = useState<ProteinData | null>(null);
     const [showProteinEditor, setShowProteinEditor] = useState(false);
+    const [isFormValid, setIsFormValid] = useState<boolean>(true);
     const [localEdgeData, setLocalEdgeData] = useState<EdgeData | null>(null);
     
     // Reset proteinData when new node clicked
@@ -92,6 +93,7 @@ const PropertiesWindow: React.FC = () => {
     
     // Called when user submits the updated protein data
     const handleUpdate = () => {
+        if (!isFormValid) return; // prevent update when form invalid
         if (localProteinData) {
             setProteinData(localProteinData.label, localProteinData);
 
@@ -220,7 +222,7 @@ const PropertiesWindow: React.FC = () => {
             type="auto"
             scrollbars="vertical"
             style={{
-                maxHeight: '400px',
+                maxHeight: 'calc(100vh - 200px)',
                 border: '1px solid var(--gray-a6)',
                 borderRadius: 'var(--radius-3)',
                 padding: '1rem',
@@ -232,8 +234,10 @@ const PropertiesWindow: React.FC = () => {
                     mode="edit"
                     proteinData={editingProtein}
                     setProteinData={setEditingProtein}
+                    edges={edges}
+                    onValidityChange={setIsFormValid}
                 />
-                <Button onClick={handleUpdate}><Text>Update Protein</Text></Button>
+                <Button onClick={handleUpdate} disabled={!isFormValid}><Text>Update Protein</Text></Button>
             </Flex>
         </ScrollArea>
     )
@@ -262,7 +266,7 @@ const PropertiesWindow: React.FC = () => {
                 { showProteinEditor && ( 
                     <ScrollArea type="auto" scrollbars="vertical"
                         style={{
-                            maxHeight: '400px',
+                            maxHeight: 'calc(100vh - 200px)',
                             border: '1px solid var(--gray-a6)',
                             borderRadius: 'var(--radius-3)',
                             padding: '1rem',
@@ -274,8 +278,10 @@ const PropertiesWindow: React.FC = () => {
                                 mode="edit"
                                 proteinData={localProteinData}
                                 setProteinData={setLocalProteinData}
+                                edges={edges}
+                                onValidityChange={setIsFormValid}
                             />
-                            <Button onClick={handleUpdate}><Text>Update Protein</Text></Button>
+                            <Button onClick={handleUpdate} disabled={!isFormValid}><Text>Update Protein</Text></Button>
                         </Flex>
                     </ScrollArea>
                 )}
