@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+  "data": {
+    "proteinNames": ["A", "B"],
+    "timePoints": [0, 1, 2],
+    "concentrations": [[0.1, 0.2], [0.2, 0.3], [0.3, 0.4]]
+  },
+  "requestId": "demo"
+}

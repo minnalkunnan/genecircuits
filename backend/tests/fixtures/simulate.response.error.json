@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error": "boom",
+  "traceback": "Traceback (most recent call last): ...",
+  "requestId": "demo"
+}

@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: GeneCircuits API
+  version: "0.1.0"
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /api/health:
+    get:
+      summary: Health check (web replacement for get-backend-status + backend-ready)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ready:
+                    type: boolean
+                required: [ready]
+
+  /api/simulate:
+    post:
+      summary: Run simulation (web replacement for run-simulation IPC)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationRequest"
+      responses:
+        "200":
+          description: Simulation response (success, error, or no-circuit)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResponse"
+        "500":
+          description: Server error
+
+components:
+  schemas:
+    SimulationRequest:
+      type: object
+      description: Entire circuit JSON. Backend currently reads circuitSettings.* only.
+      properties:
+        circuitSettings:
+          type: object
+          properties:
+            simulationDuration:
+              type: number
+            numTimePoints:
+              type: integer
+          additionalProperties: true
+      additionalProperties: true
+
+    SimulationDataPayload:
+      type: object
+      properties:
+        proteinNames:
+          type: array
+          items: { type: string }
+        timePoints:
+          type: array
+          items: { type: number }
+        concentrations:
+          type: array
+          items:
+            type: array
+            items: { type: number }
+      required: [proteinNames, timePoints, concentrations]
+      additionalProperties: false
+
+    SimulationSuccessResponse:
+      type: object
+      properties:
+        success: { const: true }
+        image: { type: string, description: "Base64 PNG (no data: prefix)" }
+        data: { $ref: "#/components/schemas/SimulationDataPayload" }
+        requestId: { type: string }
+      required: [success, image, data, requestId]
+      additionalProperties: true
+
+    SimulationErrorResponse:
+      type: object
+      properties:
+        success: { const: false }
+        error: { type: string }
+        traceback: { type: string }
+        requestId: { type: string }
+      required: [success, error, traceback, requestId]
+      additionalProperties: true
+
+    SimulationNoCircuitResponse:
+      type: object
+      properties:
+        success: { const: "No circuit provided" }
+        requestId: { type: string }
+      required: [success, requestId]
+      additionalProperties: true
+
+    SimulationResponse:
+      oneOf:
+        - $ref: "#/components/schemas/SimulationSuccessResponse"
+        - $ref: "#/components/schemas/SimulationErrorResponse"
+        - $ref: "#/components/schemas/SimulationNoCircuitResponse"

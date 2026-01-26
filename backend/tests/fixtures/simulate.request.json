@@ -1,0 +1,6 @@
+{
+  "circuitSettings": {
+    "simulationDuration": 20,
+    "numTimePoints": 10
+  }
+}
