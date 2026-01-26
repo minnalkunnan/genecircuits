@@ -7,8 +7,9 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { CircuitProvider, SelectionStateProvider, WindowStateProvider, HillCoefficientProvider, useCircuitContext } from './hooks';
 import React, { useEffect, useState } from 'react';
-import {AlertProvider} from "./components/Alerts/AlertProvider";
+import { AlertProvider } from "./components/Alerts/AlertProvider";
 import LoadingScreen from './LoadingScreen';
+import { getBackendReady } from "./api/backendClient.web";
 
 const rootElement = document.getElementById('root');
 
@@ -37,17 +38,36 @@ function AppContent() {
     const [backendReady, setBackendReady] = useState<boolean | null>(null);
 
     useEffect(() => {
-        window.electron.getBackendStatus().then((status: boolean) => {
-            if (status) {
+        let cancelled = false;
+        let intervalId: number | undefined;
+
+        async function start() {
+            const ready = await getBackendReady();
+            if (cancelled) return;
+
+            if (ready) {
                 setBackendReady(true);
+                return;
             }
-        });
-        window.electron.onBackendReady((ready: boolean) => {
-            setBackendReady(ready);
-        });
+
+            // Poll until ready (web-safe). Electron still works because getBackendReady()
+            // falls back to IPC getBackendStatus().
+            intervalId = window.setInterval(async () => {
+                const r = await getBackendReady();
+                if (cancelled) return;
+                if (r) {
+                    setBackendReady(true);
+                    if (intervalId !== undefined) window.clearInterval(intervalId);
+                    intervalId = undefined;
+                }
+            }, 300);
+        }
+
+        void start();
 
         return () => {
-            // Cannot removeListener since preload only gave us onBackendReady as a wrapper
+            cancelled = true;
+            if (intervalId !== undefined) window.clearInterval(intervalId);
         };
     }, []);
 
@@ -56,7 +76,6 @@ function AppContent() {
 
     return <CircuitBuilderFlow />;
 }
-
 
 if (rootElement) {
     const root = createRoot(rootElement);

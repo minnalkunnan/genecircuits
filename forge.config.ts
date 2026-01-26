@@ -24,9 +24,9 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-      new MakerSquirrel({
-        setupIcon: './icons/icon.ico',
-      }),
+    new MakerSquirrel({
+      setupIcon: './icons/icon.ico',
+    }),
     new MakerZIP({}, ['darwin']),
     new MakerRpm({
       options: {
@@ -49,10 +49,10 @@ const config: ForgeConfig = {
         entryPoints: [
           {
             html: './src/index.html',
-            js: './src/renderer.ts',
+            js: './electron/renderer.ts',
             name: 'main_window',
             preload: {
-              js: './src/preload.ts',
+              js: './electron/preload.ts',
             },
           },
         ],
@@ -60,17 +60,18 @@ const config: ForgeConfig = {
     }),
   ],
 };
+
 if (process.env.NODE_ENV !== 'development') {
   config.plugins!.push(
-      new FusesPlugin({
-        version: FuseVersion.V1,
-        [FuseV1Options.RunAsNode]: false,
-        [FuseV1Options.EnableCookieEncryption]: true,
-        [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-        [FuseV1Options.EnableNodeCliInspectArguments]: false,
-        [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-        [FuseV1Options.OnlyLoadAppFromAsar]: true,
-      })
+    new FusesPlugin({
+      version: FuseVersion.V1,
+      [FuseV1Options.RunAsNode]: false,
+      [FuseV1Options.EnableCookieEncryption]: true,
+      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+      [FuseV1Options.OnlyLoadAppFromAsar]: true,
+    })
   );
 }
 

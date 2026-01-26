@@ -10,9 +10,19 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
+    "lint:changed": "eslint --ext .ts,.tsx backend/src/pythonClient.ts backend/src/server.ts backend/src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "dev:backend": "ts-node backend/src/index.ts",
+    "dev:web": "concurrently -k -n backend,web -c auto \"npm run dev:backend:kill && npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "vite",
+    "build:web": "vite build",
+    "preview:web": "vite preview --port 5173",
+    "dev:electron": "concurrently -k -n backend,electron -c auto \"npm run dev:backend:kill && npm run dev:backend\" \"npm run start\"",
+    "serve:web": "ts-node web/serveDist.ts",
+    "serve:web:all": "concurrently -k -n backend,webdist -c auto \"npm run dev:backend\" \"npm run serve:web\"",
+    "dev:backend:kill": "node -e \"const {execSync}=require('node:child_process'); try{ execSync('lsof -ti tcp:3001 | xargs kill -9', {stdio:'inherit'}); }catch(e){}\""
   },
   "build": {
     "appId": "genetic-circuit-simulator",
@@ -68,12 +78,14 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "@vitejs/plugin-react": "^4.7.0",
     "concurrently": "^9.1.2",
     "css-loader": "^6.11.0",
     "electron": "^34.0.2",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.31.0",
     "fork-ts-checker-webpack-plugin": "^7.3.0",
+    "http-proxy-middleware": "^3.0.5",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
@@ -82,7 +94,8 @@
     "ts-jest": "^29.4.4",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
-    "typescript": "~4.5.4"
+    "typescript": "~4.5.4",
+    "vite": "^5.4.21"
   },
   "keywords": [],
   "author": {

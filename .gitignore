@@ -111,3 +111,6 @@ backend/test/*.html
 
 backend/test/simulation_test_data/*.txt
 backend/test/simulation_test_data/*.htmlg
+
+# build outputs
+web-dist/

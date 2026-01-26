@@ -16,5 +16,6 @@
     },
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "src/global.d.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["src/preload.ts"]
 }
