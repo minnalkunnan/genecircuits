@@ -12,7 +12,8 @@ import {
     X,
     Dna,
     AreaChart,
-    Grid3X3
+    Grid3X3,
+    Hexagon
 } from "lucide-react";
 import {
     Flex,
@@ -258,6 +259,14 @@ const TopRibbon: React.FC = () => {
                     <Tooltip content="Hill Coefficient Matrix">
                         <IconButton variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
                             <Grid3X3 size={20} />
+                        </IconButton>
+                    </Tooltip>
+
+                    <Tooltip content="Turing Pattern Simulator">
+                        <IconButton asChild variant="outline" size="3" color="gray">
+                            <a href="/turing-pattern.html" aria-label="Open Turing pattern simulator">
+                                <Hexagon size={20} />
+                            </a>
                         </IconButton>
                     </Tooltip>
 

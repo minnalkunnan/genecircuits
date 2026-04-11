@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Turing Pattern Simulator</title>
+  <style>
+    /* Align with Genetic Circuit Simulator (genecircuits/src/index.css + Ribbon) */
+    :root {
+      --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --accent: #3ca683;
+      --border-app: #ccc;
+      --border-subtle: #ddd;
+      --surface-left: #fcfcfc;
+      --surface-work: #f7f9fb;
+      --text-muted: #6b7280;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      line-height: 1.45;
+      color: #111;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top ribbon — matches Ribbon Flex p="3" + border #ccc */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      min-height: 56px;
+      background: #fff;
+      border-bottom: 1px solid var(--border-app);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .h-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 0 0 auto;
+    }
+
+    .logo-home {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      color: inherit;
+      text-decoration: none;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .logo-home:hover svg polygon[fill='none'] {
+      stroke: #2d8f6e;
+    }
+
+    .logo-home:focus-visible {
+      box-shadow: 0 0 0 2px rgba(60, 166, 131, 0.35);
+    }
+
+    .h-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 16px;
+      min-width: 0;
+    }
+
+    .h-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    /* Text size="3" weight bold — app title */
+    .app-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .h-icon-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* IconButton size="3" ~40px, outline gray */
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0;
+      flex-shrink: 0;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background: #f9fafb;
+      border-color: #ccc;
+    }
+
+    .icon-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* TextField.Root size="2" surface, centered */
+    .proj-input {
+      font-size: 15px;
+      color: #111;
+      background: #f9fafb;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 14px;
+      text-align: center;
+      outline: none;
+      width: 100%;
+      max-width: 400px;
+      font-family: inherit;
+      cursor: text;
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+
+    .proj-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(60, 166, 131, 0.12);
+      background: #fff;
+    }
+
+    /* Button solid size="3" */
+    .run-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 18px;
+      min-height: 40px;
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: filter 0.12s, box-shadow 0.12s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .run-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .run-btn:active {
+      filter: brightness(0.96);
+    }
+
+    .time-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      min-height: 40px;
+      background: var(--surface-left);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+    }
+
+    .time-badge-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      min-width: 44px;
+    }
+
+    .body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left pane — .left-pane in circuit app */
+    aside {
+      flex: 0 0 30%;
+      min-width: 200px;
+      max-width: 400px;
+      background: var(--surface-left);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Radix Tabs.List style */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+      background: var(--surface-left);
+    }
+
+    .tab-btn {
+      position: relative;
+      flex: 1;
+      padding: 12px 10px;
+      background: none;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      transition: color 0.12s;
+    }
+
+    .tab-btn:hover {
+      color: #374151;
+    }
+
+    .tab-btn.active {
+      color: #111;
+      font-weight: 600;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .tab-panel.active > .section-head:first-of-type {
+      padding-top: 20px;
+    }
+
+    /* Toolbox-style section title (Text size="4" bold) */
+    .section-head {
+      padding: 14px 16px 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      border-bottom: 1px solid #e5e7eb;
+      background: var(--surface-left);
+    }
+
+    .param-item {
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid #eee;
+      background: var(--surface-left);
+    }
+
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .param-sym {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--accent);
+      min-width: 28px;
+    }
+
+    .param-lbl {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .param-val {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: #111;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    input[type=range].slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      background: linear-gradient(to right,
+          var(--accent) var(--pct, 50%),
+          #e5e7eb var(--pct, 50%));
+    }
+
+    input[type=range].slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type=range].slider::-webkit-slider-thumb:hover {
+      transform: scale(1.08);
+    }
+
+    input[type=range].slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .legend-wrap {
+      padding: 14px 16px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      background: var(--surface-left);
+    }
+
+    .legend-bar {
+      height: 10px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #3b82f6, #ef4444);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .legend-lbls {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .legend-colors {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .lc-blue {
+      color: #3b82f6;
+    }
+
+    .lc-red {
+      color: #ef4444;
+    }
+
+    .eq-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      background: var(--surface-left);
+    }
+
+    .eq-lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .eq-val {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      line-height: 1.55;
+      word-break: break-word;
+      color: #374151;
+    }
+
+    .eq-val.accent {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .eq-val.dim {
+      color: #9ca3af;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid #eee;
+      background: var(--surface-left);
+    }
+
+    .info-lbl {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .info-val {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: #111;
+    }
+
+    .info-val.accent {
+      color: var(--accent);
+    }
+
+    /* .flow-wrapper background */
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface-work);
+      background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+      background-size: 20px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-subtle);
+    }
+
+    #sim-canvas {
+      display: block;
+      max-width: 100%;
+      max-height: calc(100vh - 64px);
+    }
+
+    #start-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(247, 249, 251, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+
+    .overlay-card {
+      text-align: center;
+      padding: 28px 36px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .overlay-hex {
+      font-size: 40px;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .overlay-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .overlay-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      font-weight: 500;
+    }
+
+    .zoom-panel {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .zoom-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 18px;
+      font-family: inherit;
+      padding: 0;
+      transition: background 0.1s;
+    }
+
+    .zoom-btn:hover {
+      background: #f9fafb;
+    }
+
+    .zoom-divider {
+      height: 1px;
+      background: #e5e7eb;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── Header ── -->
+    <header>
+      <div class="h-left">
+        <a class="logo-home" href="/" title="Back to circuit builder" aria-label="Back to circuit builder">
+          <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
+            <polygon points="14,2 24,7.5 24,20.5 14,26 4,20.5 4,7.5" fill="none" stroke="#3ca683" stroke-width="2.2" />
+            <polygon points="14,8 19.5,11.2 19.5,17.8 14,21 8.5,17.8 8.5,11.2" fill="#3ca683" opacity="0.25" />
+          </svg>
+        </a>
+        <span class="app-title">Turing Pattern Simulator</span>
+        <div class="h-icon-row">
+          <button class="icon-btn" title="New">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </button>
+          <button class="icon-btn" title="Save">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          </button>
+          <button class="icon-btn" title="Export">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="h-center">
+        <input class="proj-input" value="Untitled Simulation" spellcheck="false" />
+      </div>
+
+      <div class="h-right">
+        <button class="icon-btn" id="btn-step" title="Step">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="5 3 19 12 5 21 5 3" />
+            <line x1="19" y1="3" x2="19" y2="21" />
+          </svg>
+        </button>
+        <button class="icon-btn" id="btn-playpause-icon" title="Play">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            id="pp-icon-svg">
+            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+          </svg>
+        </button>
+        <button class="run-btn" id="btn-run">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="run-icon">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          <span id="run-label">Run Simulation</span>
+        </button>
+        <div class="time-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3ca683" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span class="time-badge-val" id="time-display">0.0</span>
+        </div>
+        <button class="icon-btn" id="btn-reset" title="Reset">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+          </svg>
+        </button>
+        <button class="icon-btn" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Body ── -->
+    <div class="body">
+
+      <!-- ── Sidebar ── -->
+      <aside>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="parameters">Parameters</button>
+          <button class="tab-btn" data-tab="equations">Equations</button>
+          <button class="tab-btn" data-tab="info">Info</button>
+        </div>
+
+        <div class="sidebar-scroll">
+
+          <!-- Parameters Tab -->
+          <div class="tab-panel active" id="tab-parameters">
+            <div class="section-head">Reaction Model</div>
+            <!-- param rows injected by JS -->
+            <div id="params-reaction"></div>
+
+            <div class="section-head">Diffusion</div>
+            <div id="params-diffusion"></div>
+
+            <div class="section-head">Hill Function</div>
+            <div id="params-hill"></div>
+
+            <div class="section-head" id="legend-section-head">Total concentration (a + i)</div>
+            <div class="legend-wrap">
+              <div class="legend-bar"></div>
+              <div class="legend-lbls"><span id="legend-low">Low (a + i)</span><span id="legend-high">High (a + i)</span></div>
+              <div class="legend-colors">
+                <span class="lc-blue">● Blue</span>
+                <span class="lc-red">● Red</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equations Tab -->
+          <div class="tab-panel" id="tab-equations">
+            <div class="section-head">Neighbourhood</div>
+            <div class="eq-card"><span class="eq-lbl">Sum</span><span class="eq-val">S̄ = avg(aₙ)</span></div>
+            <div class="eq-card"><span class="eq-lbl">Hill</span><span class="eq-val accent">f = A/(1+A+I), A=(S̄/K)^{n_a}, I=(i/K)^{n_i}</span></div>
+            <div class="section-head">Dynamics</div>
+            <div class="eq-card"><span class="eq-lbl">Activator</span><span class="eq-val">∂a/∂t = βa·f(S̄,i) − λa·a</span>
+            </div>
+            <div class="eq-card"><span class="eq-lbl">Inhibitor</span><span class="eq-val">∂i/∂t = Di·∇²i + βi·f(S̄,i) − λi·i</span></div>
+            <div class="section-head">Laplacian</div>
+            <div class="eq-card"><span class="eq-lbl">∇²i</span><span class="eq-val dim">≈ avg(iₙ) − i</span></div>
+          </div>
+
+          <!-- Info Tab -->
+          <div class="tab-panel" id="tab-info">
+            <div class="section-head">Grid</div>
+            <div class="info-row"><span class="info-lbl">Dimensions</span><span class="info-val" id="info-dim"></span>
+            </div>
+            <div class="info-row"><span class="info-lbl">Total Cells</span><span class="info-val"
+                id="info-cells"></span></div>
+            <div class="info-row"><span class="info-lbl">Time Step</span><span class="info-val">Δt = 0.01 × 8 / frame</span></div>
+            <div class="info-row"><span class="info-lbl">Step Count</span><span class="info-val"
+                id="info-steps">0</span></div>
+            <div class="info-row"><span class="info-lbl">Topology</span><span class="info-val">Hex lattice</span></div>
+            <div class="section-head">Status</div>
+            <div class="info-row"><span class="info-lbl">State</span><span class="info-val" id="info-state">⏸
+                Paused</span></div>
+            <div class="info-row"><span class="info-lbl">Time</span><span class="info-val" id="info-time">0.0</span>
+            </div>
+            <div class="info-row"><span class="info-lbl">Color scale</span><span class="info-val"
+                id="info-field">Total a + i</span></div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- ── Canvas ── -->
+      <main>
+        <div class="canvas-wrap">
+          <canvas id="sim-canvas"></canvas>
+
+          <!-- Start overlay -->
+          <div id="start-overlay">
+            <div class="overlay-card">
+              <div class="overlay-hex">⬡</div>
+              <div class="overlay-title">Ready to Simulate</div>
+              <div class="overlay-sub">Small perturbations grow near a steady state</div>
+              <button class="run-btn" id="btn-overlay-run" style="margin-left:0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Simulation
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zoom panel -->
+        <div class="zoom-panel">
+          <button class="zoom-btn" title="Zoom in">+</button>
+          <div class="zoom-divider"></div>
+          <button class="zoom-btn" title="Zoom out">−</button>
+          <div class="zoom-divider"></div>
+          <button class="zoom-btn" title="Fit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
+          <div class="zoom-divider"></div>
+          <button class="zoom-btn" title="Lock">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+          </button>
+        </div>
+      </main>
+
+    </div><!-- .body -->
+  </div><!-- #app -->
+
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  Turing Pattern Reaction-Diffusion Simulator
+    //  Revised to behave more like a juxtacrine activator / diffusive inhibitor
+    //  system, with smaller numerical steps and steadier visualization.
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ── Constants ──────────────────────────────────────────────────────────────
+    const N = 52;
+    const HEX_SIZE = 6.8;
+    const DT = 0.01;                 // matches the reference config more closely
+    const SUBSTEPS_PER_FRAME = 8;    // multiple stable sim steps per render
+    const CLR_LOW = [59, 130, 246];
+    const CLR_HIGH = [239, 68, 68];
+    const EPS = 1e-9;
+
+    // ── Parameter definitions ──────────────────────────────────────────────────
+    // These ranges are rescaled to match the revised kinetics more closely.
+    const PARAM_META = [
+      { key: 'ba', label: 'Activator Prod', sym: 'βa', min: 0.50, max: 10.00, step: 0.10, dp: 2, group: 'reaction' },
+      { key: 'bi', label: 'Inhibitor Prod', sym: 'βi', min: 0.50, max: 10.00, step: 0.10, dp: 2, group: 'reaction' },
+      { key: 'la', label: 'Activator Degrade', sym: 'λa', min: 0.20, max: 3.00, step: 0.05, dp: 2, group: 'reaction' },
+      { key: 'li', label: 'Inhibitor Degrade', sym: 'λi', min: 0.20, max: 3.00, step: 0.05, dp: 2, group: 'reaction' },
+      { key: 'di', label: 'Inhibitor Diffusion', sym: 'Di', min: 0.00, max: 15.00, step: 0.10, dp: 2, group: 'diffusion' },
+      { key: 'K', label: 'Signal Threshold', sym: 'K', min: 0.10, max: 3.00, step: 0.05, dp: 2, group: 'hill' },
+      { key: 'nA', label: 'Hill (activator)', sym: 'n_a', min: 1.00, max: 6.00, step: 0.25, dp: 2, group: 'hill' },
+      { key: 'nI', label: 'Hill (inhibitor)', sym: 'n_i', min: 1.00, max: 6.00, step: 0.25, dp: 2, group: 'hill' },
+    ];
+
+    // Tuned starting point: local activation, stronger long-range inhibition.
+    const DEFAULT_PARAMS = {
+      ba: 6.00,
+      bi: 4.00,
+      la: 1.00,
+      li: 1.00,
+      di: 10.00,
+      K: 1.00,
+      nA: 3.00,
+      nI: 3.00,
+    };
+
+    // ── Precomputed geometry ───────────────────────────────────────────────────
+    const W = Math.sqrt(3) * HEX_SIZE;
+    const ROW_H = HEX_SIZE * 1.5;
+
+    const NEIGHBOR_MAP = (() => {
+      const map = new Array(N * N);
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const idx = r * N + c;
+          const dirs = r % 2 === 0
+            ? [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]]
+            : [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
+          const ns = [];
+          for (const [dr, dc] of dirs) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < N && nc >= 0 && nc < N) ns.push(nr * N + nc);
+          }
+          map[idx] = new Int16Array(ns);
+        }
+      }
+      return map;
+    })();
+
+    const HEX_VERTS = Array.from({ length: 6 }, (_, k) => {
+      const a = (Math.PI / 3) * k - Math.PI / 6;
+      return [Math.cos(a), Math.sin(a)];
+    });
+
+    const GRID_CX = new Float32Array(N * N);
+    const GRID_CY = new Float32Array(N * N);
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const idx = r * N + c;
+        GRID_CX[idx] = c * W + (r % 2 === 1 ? W / 2 : 0) + W;
+        GRID_CY[idx] = r * ROW_H + HEX_SIZE + 2;
+      }
+    }
+
+    const CANVAS_W = Math.ceil(N * W + W * 1.5 + 2);
+    const CANVAS_H = Math.ceil(N * ROW_H + HEX_SIZE * 2 + 4);
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function clamp(x, lo, hi) {
+      return Math.max(lo, Math.min(hi, x));
+    }
+
+    function hexColor(val) {
+      const t = clamp(val, 0, 1);
+      const r = (CLR_LOW[0] + (CLR_HIGH[0] - CLR_LOW[0]) * t) | 0;
+      const g = (CLR_LOW[1] + (CLR_HIGH[1] - CLR_LOW[1]) * t) | 0;
+      const b = (CLR_LOW[2] + (CLR_HIGH[2] - CLR_LOW[2]) * t) | 0;
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function percentile(sorted, p) {
+      if (sorted.length === 0) return 0;
+      const idx = Math.floor(clamp(p, 0, 1) * (sorted.length - 1));
+      return sorted[idx];
+    }
+
+    // ── Simulation state ───────────────────────────────────────────────────────
+    const bufsA = [new Float32Array(N * N), new Float32Array(N * N)];
+    const bufsI = [new Float32Array(N * N), new Float32Array(N * N)];
+    let curBuf = 0;
+    let simTime = 0;
+    let stepCount = 0;
+    let params = { ...DEFAULT_PARAMS };
+    let running = false;
+    let rafId = null;
+    let steadyA = 0.5;
+    let steadyI = 0.5;
+
+    const sumField = new Float32Array(N * N);
+    const displayScale = {
+      combined: { lo: NaN, hi: NaN }
+    };
+
+    // ── DOM refs ───────────────────────────────────────────────────────────────
+    const canvas = document.getElementById('sim-canvas');
+    const ctx = canvas.getContext('2d');
+    const timeDisplay = document.getElementById('time-display');
+    const infoSteps = document.getElementById('info-steps');
+    const infoState = document.getElementById('info-state');
+    const infoTime = document.getElementById('info-time');
+    const infoField = document.getElementById('info-field');
+    const startOverlay = document.getElementById('start-overlay');
+    const btnStep = document.getElementById('btn-step');
+    const btnRun = document.getElementById('btn-run');
+    const runLabel = document.getElementById('run-label');
+    const runIcon = document.getElementById('run-icon');
+    const btnPPIcon = document.getElementById('btn-playpause-icon');
+    const ppIconSvg = document.getElementById('pp-icon-svg');
+
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+
+    // ── Model ──────────────────────────────────────────────────────────────────
+    // We use a juxtacrine activator signal from neighboring activator levels,
+    // but include local inhibitor repression in the Hill response. That makes
+    // the activator and inhibitor actually coupled, unlike the original toy form.
+    //
+    // signal = average(neighbor activator)
+    // A = (S̄/K)^{n_a}, I = (i/K)^{n_i}, f = A / (1 + A + I)
+    // da/dt = βa f - λa a
+    // di/dt = βi f - λi i + Di(avg(i_n) - i)
+    function hillResponse(signal, inhibitor) {
+      const K = Math.max(params.K, EPS);
+      const nA = params.nA;
+      const nI = params.nI;
+      const actTerm = Math.pow(Math.max(signal, 0) / K, nA);
+      const inhTerm = Math.pow(Math.max(inhibitor, 0) / K, nI);
+      return actTerm / (1 + actTerm + inhTerm);
+    }
+
+    function iterateHomogeneousState(seedA, seedI) {
+      let a = Math.max(seedA, 0.001);
+      let i = Math.max(seedI, 0.001);
+
+      for (let k = 0; k < 140; k++) {
+        const f = hillResponse(a, i);
+        const nextA = params.ba * f / Math.max(params.la, EPS);
+        const nextI = params.bi * f / Math.max(params.li, EPS);
+        a = 0.72 * a + 0.28 * nextA;
+        i = 0.72 * i + 0.28 * nextI;
+      }
+      return { a, i };
+    }
+
+    function computeHomogeneousSteadyState() {
+      const seeds = [
+        [0.2, 0.2],
+        [params.K, params.K],
+        [2 * params.K, 1.5 * params.K],
+        [params.ba / Math.max(params.la, 1), params.bi / Math.max(params.li, 1)],
+        [0.7 * params.ba / Math.max(params.la, 1), 0.7 * params.bi / Math.max(params.li, 1)],
+        [5, 5],
+        [8, 6],
+      ];
+
+      let best = { a: 0, i: 0 };
+      for (const [sa, si] of seeds) {
+        const cand = iterateHomogeneousState(sa, si);
+        if (Number.isFinite(cand.a) && Number.isFinite(cand.i) && cand.a >= 0 && cand.i >= 0) {
+          if (cand.a + cand.i > best.a + best.i) best = cand;
+        }
+      }
+
+      // If the only attractor found is essentially the null state, fall back to a
+      // nonzero background so the simulator does not start as an all-blue field.
+      if (best.a + best.i < 0.25) {
+        return {
+          a: Math.max(1.0, params.K, 0.45 * params.ba / Math.max(params.la, 0.5)),
+          i: Math.max(0.8, 0.45 * params.bi / Math.max(params.li, 0.5)),
+        };
+      }
+
+      return { a: Math.max(0.01, best.a), i: Math.max(0.01, best.i) };
+    }
+
+    // ── Grid init ──────────────────────────────────────────────────────────────
+    function initGrid() {
+      const a = bufsA[0], i = bufsI[0];
+      const ss = computeHomogeneousSteadyState();
+      steadyA = ss.a;
+      steadyI = ss.i;
+
+      for (let k = 0; k < N * N; k++) {
+        const noiseA = (Math.random() - 0.5) * 0.12;
+        const noiseI = (Math.random() - 0.5) * 0.12;
+        a[k] = Math.max(0, steadyA * (1 + noiseA));
+        i[k] = Math.max(0, steadyI * (1 + noiseI));
+      }
+
+      // Tiny center perturbation to help visible symmetry breaking.
+      const center = ((N / 2) | 0) * N + ((N / 2) | 0);
+      a[center] *= 1.18;
+      i[center] *= 0.90;
+
+      curBuf = 0;
+      simTime = 0;
+      stepCount = 0;
+      displayScale.combined.lo = NaN;
+      displayScale.combined.hi = NaN;
+    }
+
+    function getRobustRange(field, key) {
+      const values = Array.from(field).sort((x, y) => x - y);
+      let lo = percentile(values, 0.02);
+      let hi = percentile(values, 0.98);
+
+      if (!(hi > lo)) {
+        lo = values[0] ?? 0;
+        hi = (values[values.length - 1] ?? 1) + 1e-6;
+      }
+
+      const scale = displayScale[key];
+      if (!Number.isFinite(scale.lo) || !Number.isFinite(scale.hi)) {
+        scale.lo = lo;
+        scale.hi = hi;
+      } else {
+        scale.lo = 0.92 * scale.lo + 0.08 * lo;
+        scale.hi = 0.92 * scale.hi + 0.08 * hi;
+      }
+
+      if (!(scale.hi > scale.lo + 1e-6)) {
+        scale.hi = scale.lo + 1e-6;
+      }
+      return scale;
+    }
+
+    // ── Draw ───────────────────────────────────────────────────────────────────
+    function drawGrid() {
+      const a = bufsA[curBuf], iv = bufsI[curBuf];
+      for (let idx = 0; idx < N * N; idx++) {
+        sumField[idx] = a[idx] + iv[idx];
+      }
+      const scale = getRobustRange(sumField, 'combined');
+      const rng = scale.hi - scale.lo;
+      const s = HEX_SIZE - 0.55;
+
+      ctx.fillStyle = '#dde3e8';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+      for (let idx = 0; idx < N * N; idx++) {
+        ctx.fillStyle = hexColor((sumField[idx] - scale.lo) / rng);
+        const cx = GRID_CX[idx], cy = GRID_CY[idx];
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const hx = cx + s * HEX_VERTS[k][0];
+          const hy = cy + s * HEX_VERTS[k][1];
+          if (k === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // ── Simulation step ────────────────────────────────────────────────────────
+    function stepSim() {
+      const nxt = 1 - curBuf;
+      const a = bufsA[curBuf], iv = bufsI[curBuf];
+      const na = bufsA[nxt], ni = bufsI[nxt];
+
+      for (let idx = 0; idx < N * N; idx++) {
+        const nbrs = NEIGHBOR_MAP[idx];
+        const nn = nbrs.length || 1;
+        let sumA = 0, sumI = 0;
+        for (let j = 0; j < nbrs.length; j++) {
+          sumA += a[nbrs[j]];
+          sumI += iv[nbrs[j]];
+        }
+
+        // Use average neighbor activator, matching the reference juxtacrine idea.
+        const signalA = sumA / nn;
+        const avgI = sumI / nn;
+        const f = hillResponse(signalA, iv[idx]);
+        const lapI = avgI - iv[idx];
+
+        const nextA = a[idx] + DT * (params.ba * f - params.la * a[idx]);
+        const nextI = iv[idx] + DT * (params.bi * f - params.li * iv[idx] + params.di * lapI);
+
+        na[idx] = Math.max(0, nextA);
+        ni[idx] = Math.max(0, nextI);
+      }
+
+      curBuf = nxt;
+      simTime += DT;
+      stepCount++;
+    }
+
+    // ── Animation loop ─────────────────────────────────────────────────────────
+    function loop() {
+      if (!running) return;
+
+      for (let k = 0; k < SUBSTEPS_PER_FRAME; k++) {
+        stepSim();
+      }
+
+      drawGrid();
+      updateDisplays();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    // ── UI update helpers ──────────────────────────────────────────────────────
+    function updateDisplays() {
+      const t = simTime.toFixed(2);
+      timeDisplay.textContent = t;
+      infoTime.textContent = t;
+      infoSteps.textContent = stepCount;
+      infoState.textContent = running ? '▶ Running' : '⏸ Paused';
+      infoState.classList.toggle('accent', running);
+      infoField.textContent = 'Total a + i';
+    }
+
+    function setRunningState(val) {
+      running = val;
+      if (running) {
+        runLabel.textContent = 'Pause';
+        runIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        ppIconSvg.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        btnPPIcon.title = 'Pause';
+        btnStep.disabled = true;
+      } else {
+        runLabel.textContent = 'Run Simulation';
+        runIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        ppIconSvg.innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>';
+        btnPPIcon.title = 'Play';
+        btnStep.disabled = false;
+      }
+      updateDisplays();
+    }
+
+    // ── Controls ───────────────────────────────────────────────────────────────
+    function handlePlay() {
+      if (running) return;
+      startOverlay.style.display = 'none';
+      setRunningState(true);
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function handlePause() {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(rafId);
+      setRunningState(false);
+    }
+
+    function handlePlayPause() {
+      running ? handlePause() : handlePlay();
+    }
+
+    function handleStep() {
+      if (running) return;
+      startOverlay.style.display = 'none';
+      for (let k = 0; k < SUBSTEPS_PER_FRAME; k++) stepSim();
+      drawGrid();
+      updateDisplays();
+    }
+
+    function handleReset() {
+      handlePause();
+      setTimeout(() => {
+        initGrid();
+        drawGrid();
+        updateDisplays();
+        startOverlay.style.display = 'flex';
+      }, 40);
+    }
+
+    btnRun.addEventListener('click', handlePlayPause);
+    btnPPIcon.addEventListener('click', handlePlayPause);
+    btnStep.addEventListener('click', handleStep);
+    document.getElementById('btn-reset').addEventListener('click', handleReset);
+    document.getElementById('btn-overlay-run').addEventListener('click', handlePlay);
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function buildParamRows() {
+      const groups = { reaction: [], diffusion: [], hill: [] };
+      PARAM_META.forEach(m => groups[m.group].push(m));
+
+      Object.entries(groups).forEach(([group, metas]) => {
+        const container = document.getElementById('params-' + group);
+        metas.forEach(m => {
+          const val = params[m.key];
+          const pct = ((val - m.min) / (m.max - m.min)) * 100;
+
+          const item = document.createElement('div');
+          item.className = 'param-item';
+          item.innerHTML = `
+        <div class="param-row">
+          <span class="param-sym">${m.sym}</span>
+          <span class="param-lbl">${m.label}</span>
+          <span class="param-val" id="val-${m.key}">${val.toFixed(m.dp)}</span>
+        </div>
+        <input type="range" class="slider" id="slider-${m.key}"
+          min="${m.min}" max="${m.max}" step="${m.step}" value="${val}"
+          style="--pct:${pct}%"/>
+      `;
+          container.appendChild(item);
+
+          const slider = item.querySelector('input');
+          const valSpan = item.querySelector('.param-val');
+          slider.addEventListener('input', () => {
+            const v = parseFloat(slider.value);
+            params[m.key] = v;
+            valSpan.textContent = v.toFixed(m.dp);
+            const p = ((v - m.min) / (m.max - m.min)) * 100;
+            slider.style.setProperty('--pct', p + '%');
+          });
+        });
+      });
+    }
+
+    document.getElementById('info-dim').textContent = `${N} × ${N}`;
+    document.getElementById('info-cells').textContent = N * N;
+
+    buildParamRows();
+    initGrid();
+    requestAnimationFrame(drawGrid);
+    updateDisplays();
+  </script>
+
+</body>
+
+</html>
