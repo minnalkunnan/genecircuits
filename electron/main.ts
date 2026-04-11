@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
+import * as fs from 'fs';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 
@@ -19,27 +20,73 @@ let messageBuffer: Buffer = Buffer.alloc(0);
 let expectedLength: number | null = null;
 let backendRunning = false;
 
+function resolveDevPythonCommand(
+  repoRoot: string,
+  backendRoot: string
+): { command: string; args: string[]; cwd?: string; env?: NodeJS.ProcessEnv } {
+  const script = path.join(backendRoot, 'ipc_server.py');
+  const venvUnix = path.join(backendRoot, 'flask-env', 'bin', 'python3');
+  const venvUnixPy = path.join(backendRoot, 'flask-env', 'bin', 'python');
+  const venvWin = path.join(backendRoot, 'flask-env', 'Scripts', 'python.exe');
+
+  let defaultPython = process.platform === 'win32' ? 'python' : 'python3';
+  if (process.platform === 'win32' && fs.existsSync(venvWin)) {
+    defaultPython = venvWin;
+  } else if (fs.existsSync(venvUnix)) {
+    defaultPython = venvUnix;
+  } else if (fs.existsSync(venvUnixPy)) {
+    defaultPython = venvUnixPy;
+  }
+
+  const command = process.env.PYTHON ?? defaultPython;
+  console.warn(
+    '[electron] backend/dist/app not found (build with `pyinstaller app.spec` in backend/). ' +
+      `Using ${command} for IPC.`
+  );
+  return {
+    command,
+    args: [script],
+    cwd: repoRoot,
+    env: { ...process.env, PYTHONPATH: repoRoot },
+  };
+}
+
 async function startBackend() {
-  let executablePath: string;
-  
-  if (app.isPackaged) { // production
-    executablePath = path.join(process.resourcesPath, 'app');
+  const stdio = ['pipe', 'pipe', 'pipe'] as const;
+  let command: string;
+  let args: string[] = [];
+  let spawnOpts: { stdio: typeof stdio; cwd?: string; env?: NodeJS.ProcessEnv } = { stdio };
+
+  if (app.isPackaged) {
+    command = path.join(process.resourcesPath, 'app');
     if (process.platform === 'win32') {
-      executablePath += '.exe';
+      command += '.exe';
     }
-  } else { // development
-    executablePath = path.join(__dirname, '..', '..', 'backend', 'dist', 'app');
+    console.log('Starting PyInstaller IPC backend at:', command);
+  } else {
+    const repoRoot = path.join(__dirname, '..', '..');
+    const backendRoot = path.join(repoRoot, 'backend');
+    let exe = path.join(backendRoot, 'dist', 'app');
     if (process.platform === 'win32') {
-      executablePath += '.exe';
+      exe += '.exe';
+    }
+
+    const forcePython =
+      process.env.GENECIRCUITS_USE_PYTHON_IPC === '1' ||
+      process.env.GENECIRCUITS_USE_PYTHON_IPC === 'true';
+
+    if (!forcePython && fs.existsSync(exe)) {
+      command = exe;
+      console.log('Starting PyInstaller IPC backend at:', command);
+    } else {
+      const py = resolveDevPythonCommand(repoRoot, backendRoot);
+      command = py.command;
+      args = py.args;
+      spawnOpts = { stdio, cwd: py.cwd, env: py.env };
     }
   }
-  
-  console.log('Starting PyInstaller IPC backend at:', executablePath);
 
-  // Start Python executable process directly (no need for 'python' command)
-  pythonProcess = spawn(executablePath, [], {
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
+  pythonProcess = spawn(command, args, spawnOpts);
 
   // Handle Python process output
   if (pythonProcess.stdout) {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useCircuitContext, useHillCoefficientContext, useWindowStateContext } from '../../hooks';
 import { fetchOutput, formatBackendJson, formatCircuitExportJson, abortFetch } from "../../utils"
+import { turingPatternSimulatorHref } from "../../utils/turingPatternSimulatorHref";
 import { saveCircuitAsImage } from "./SaveImage"; // Import our new function
 import {
     Play,
@@ -264,7 +265,7 @@ const TopRibbon: React.FC = () => {
 
                     <Tooltip content="Turing Pattern Simulator">
                         <IconButton asChild variant="outline" size="3" color="gray">
-                            <a href="/turing-pattern.html" aria-label="Open Turing pattern simulator">
+                            <a href={turingPatternSimulatorHref()} aria-label="Open Turing pattern simulator">
                                 <Hexagon size={20} />
                             </a>
                         </IconButton>

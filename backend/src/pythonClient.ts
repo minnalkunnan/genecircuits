@@ -164,15 +164,29 @@ export function resolvePythonIpcSpawnConfig(): PythonIpcSpawnConfig {
     return { command: exe, args: [], options: {} };
   }
 
-  const pythonBin =
-    process.env.PYTHON ?? (process.platform === "win32" ? "python" : "python3");
   const script = path.join(backendRoot, "ipc_server.py");
+
+  const venvUnix = path.join(backendRoot, "flask-env", "bin", "python3");
+  const venvUnixPy = path.join(backendRoot, "flask-env", "bin", "python");
+  const venvWin = path.join(backendRoot, "flask-env", "Scripts", "python.exe");
+
+  let defaultPython =
+    process.platform === "win32" ? "python" : "python3";
+  if (process.platform === "win32" && fs.existsSync(venvWin)) {
+    defaultPython = venvWin;
+  } else if (fs.existsSync(venvUnix)) {
+    defaultPython = venvUnix;
+  } else if (fs.existsSync(venvUnixPy)) {
+    defaultPython = venvUnixPy;
+  }
+
+  const pythonBin = process.env.PYTHON ?? defaultPython;
 
   if (!fs.existsSync(exe)) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[genecircuits] backend/dist/app not found (build with `pyinstaller app.spec` in backend/). " +
-        `Using ${pythonBin} for development.`,
+      "[backend] dist/app not found (optional: `pyinstaller app.spec` in backend/). " +
+        `Using ${pythonBin} for IPC.`,
     );
   }
 
