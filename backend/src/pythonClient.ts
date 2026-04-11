@@ -1,5 +1,10 @@
 // backend/src/pythonClient.ts
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import * as fs from "node:fs";
+import {
+  spawn,
+  type ChildProcessWithoutNullStreams,
+  type SpawnOptionsWithoutStdio,
+} from "node:child_process";
 import * as path from "node:path";
 
 type Pending = {
@@ -7,8 +12,15 @@ type Pending = {
   reject: (reason: any) => void;
 };
 
+/** How to launch the simulator IPC child (PyInstaller bundle or Python interpreter). */
+export type PythonIpcSpawnConfig = {
+  command: string;
+  args: string[];
+  options: SpawnOptionsWithoutStdio;
+};
+
 export type PythonClientOptions = {
-  executablePath: string;
+  spawnConfig: PythonIpcSpawnConfig;
   timeoutMs: number;
 };
 
@@ -20,7 +32,11 @@ export class PythonIpcClient {
   private expectedLength: number | null = null;
 
   constructor(opts: PythonClientOptions) {
-    this.proc = spawn(opts.executablePath, [], { stdio: ["pipe", "pipe", "pipe"] });
+    const { command, args, options } = opts.spawnConfig;
+    this.proc = spawn(command, args, {
+      ...options,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
 
     this.proc.stdout.on("data", (chunk: Buffer) => {
       this.handleData(chunk);
@@ -125,13 +141,52 @@ export class PythonIpcClient {
 }
 
 /**
- * Helper to compute the same backend executable path Electron uses.
- * Use this in server.ts so web mode and electron dev mode match.
+ * Prefer `backend/dist/app` (PyInstaller) when present — same as packaged Electron.
+ * If it is missing (typical local dev), fall back to `python3 backend/ipc_server.py`
+ * with `PYTHONPATH` set to the repo root so `from backend.parser` resolves.
+ *
+ * Set `GENECIRCUITS_USE_PYTHON_IPC=1` to force the Python interpreter even when the
+ * frozen binary exists. Set `PYTHON` to choose the interpreter (default `python3` /
+ * Windows `python`).
  */
-export function resolvePyInstallerExecutablePath(): string {
-  const base = path.join(__dirname, ".."); // <repo>/backend
-  let exe = path.join(base, "dist", "app");
+export function resolvePythonIpcSpawnConfig(): PythonIpcSpawnConfig {
+  const backendRoot = path.join(__dirname, ".."); // backend/ (contains ipc_server.py, dist/)
+  const repoRoot = path.join(backendRoot, "..");
 
+  let exe = path.join(backendRoot, "dist", "app");
   if (process.platform === "win32") exe += ".exe";
-  return exe;
+
+  const forcePython =
+    process.env.GENECIRCUITS_USE_PYTHON_IPC === "1" ||
+    process.env.GENECIRCUITS_USE_PYTHON_IPC === "true";
+
+  if (!forcePython && fs.existsSync(exe)) {
+    return { command: exe, args: [], options: {} };
+  }
+
+  const pythonBin =
+    process.env.PYTHON ?? (process.platform === "win32" ? "python" : "python3");
+  const script = path.join(backendRoot, "ipc_server.py");
+
+  if (!fs.existsSync(exe)) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[genecircuits] backend/dist/app not found (build with `pyinstaller app.spec` in backend/). " +
+        `Using ${pythonBin} for development.`,
+    );
+  }
+
+  return {
+    command: pythonBin,
+    args: [script],
+    options: {
+      cwd: repoRoot,
+      env: { ...process.env, PYTHONPATH: repoRoot },
+    },
+  };
+}
+
+/** @deprecated Use resolvePythonIpcSpawnConfig — kept for any external imports. */
+export function resolvePyInstallerExecutablePath(): string {
+  return resolvePythonIpcSpawnConfig().command;
 }

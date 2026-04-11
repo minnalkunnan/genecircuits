@@ -1,7 +1,7 @@
 // backend/src/server.ts
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
-import { PythonIpcClient, resolvePyInstallerExecutablePath } from "./pythonClient";
+import { PythonIpcClient, resolvePythonIpcSpawnConfig } from "./pythonClient";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -14,7 +14,7 @@ const HOST = process.env.HOST ?? "127.0.0.1";
 
 // Single Python process for the HTTP server lifetime.
 const py = new PythonIpcClient({
-  executablePath: resolvePyInstallerExecutablePath(),
+  spawnConfig: resolvePythonIpcSpawnConfig(),
   timeoutMs: TIMEOUT_MS,
 });
 
