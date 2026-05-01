@@ -122,12 +122,6 @@
       white-space: nowrap;
     }
 
-    .h-icon-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
     /* IconButton size="3" ~40px, outline gray */
     .icon-btn {
       width: 40px;
@@ -561,42 +555,64 @@
       font-weight: 500;
     }
 
-    .zoom-panel {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      display: flex;
-      flex-direction: column;
-      background: #fff;
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    }
-
-    .zoom-btn {
-      width: 40px;
-      height: 40px;
+    .seed-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      background: #fff;
-      border: none;
-      cursor: pointer;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+    }
+
+    .seed-row label {
+      font-size: 14px;
       color: var(--text-muted);
-      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .seed-mode {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .seed-mode input {
+      accent-color: var(--accent);
+    }
+
+    .seed-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px 16px 14px;
+    }
+
+    .seed-btn {
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: #fff;
+      cursor: pointer;
       font-family: inherit;
-      padding: 0;
-      transition: background 0.1s;
+      color: #374151;
     }
 
-    .zoom-btn:hover {
+    .seed-btn:hover {
       background: #f9fafb;
+      border-color: #ccc;
     }
 
-    .zoom-divider {
-      height: 1px;
-      background: #e5e7eb;
+    .seed-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 0 16px 12px;
+      line-height: 1.4;
+    }
+
+    #sim-canvas.seed-cursor {
+      cursor: crosshair;
     }
   </style>
 </head>
@@ -607,35 +623,13 @@
     <!-- ── Header ── -->
     <header>
       <div class="h-left">
-        <a class="logo-home" href="/" title="Back to circuit builder" aria-label="Back to circuit builder">
+        <a class="logo-home" href="index.html" title="Back to circuit builder" aria-label="Back to circuit builder">
           <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
             <polygon points="14,2 24,7.5 24,20.5 14,26 4,20.5 4,7.5" fill="none" stroke="#3ca683" stroke-width="2.2" />
             <polygon points="14,8 19.5,11.2 19.5,17.8 14,21 8.5,17.8 8.5,11.2" fill="#3ca683" opacity="0.25" />
           </svg>
         </a>
         <span class="app-title">Turing Pattern Simulator</span>
-        <div class="h-icon-row">
-          <button class="icon-btn" title="New">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-          </button>
-          <button class="icon-btn" title="Save">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-          </button>
-          <button class="icon-btn" title="Export">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          </button>
-        </div>
       </div>
 
       <div class="h-center">
@@ -643,16 +637,10 @@
       </div>
 
       <div class="h-right">
-        <button class="icon-btn" id="btn-step" title="Step">
+        <button class="icon-btn" id="btn-step" title="Step one frame (paused)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <polygon points="5 3 19 12 5 21 5 3" />
             <line x1="19" y1="3" x2="19" y2="21" />
-          </svg>
-        </button>
-        <button class="icon-btn" id="btn-playpause-icon" title="Play">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            id="pp-icon-svg">
-            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
           </svg>
         </button>
         <button class="run-btn" id="btn-run">
@@ -674,13 +662,6 @@
             <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
           </svg>
         </button>
-        <button class="icon-btn" title="Settings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-          </svg>
-        </button>
       </div>
     </header>
 
@@ -699,6 +680,36 @@
 
           <!-- Parameters Tab -->
           <div class="tab-panel active" id="tab-parameters">
+            <div class="section-head">Seeding</div>
+            <div class="seed-row seed-mode">
+              <label><input type="radio" name="seed-mode" id="seed-mode-manual" value="manual" checked /> Manual</label>
+              <label><input type="radio" name="seed-mode" id="seed-mode-random" value="random" /> Random</label>
+            </div>
+            <div class="seed-row">
+              <span class="param-sym">a₀</span>
+              <span class="param-lbl">Activator seed concentration</span>
+              <span class="param-val" id="val-seedConc">8.00</span>
+            </div>
+            <div class="param-item" style="border-bottom:none;padding-top:0">
+              <input type="range" class="slider" id="slider-seedConc" min="0" max="12" step="0.1" value="8"
+                style="--pct:66.67%" />
+            </div>
+            <div class="seed-row">
+              <span class="param-sym">#</span>
+              <span class="param-lbl">Random seed count</span>
+              <span class="param-val" id="val-randCount">8</span>
+            </div>
+            <div class="param-item" style="border-bottom:none;padding-top:0">
+              <input type="range" class="slider" id="slider-randCount" min="1" max="40" step="1" value="8"
+                style="--pct:17.95%" />
+            </div>
+            <div class="seed-actions">
+              <button type="button" class="seed-btn" id="btn-clear-seeds">Clear Seeds</button>
+              <button type="button" class="seed-btn" id="btn-randomize-seeds">Randomize Seeds</button>
+            </div>
+            <p class="seed-hint" id="seed-hint">Manual: click hex cells while paused to toggle seeds. Random: new seed
+              positions on each reset or run.</p>
+
             <div class="section-head">Reaction Model</div>
             <!-- param rows injected by JS -->
             <div id="params-reaction"></div>
@@ -775,29 +786,6 @@
               </button>
             </div>
           </div>
-        </div>
-
-        <!-- Zoom panel -->
-        <div class="zoom-panel">
-          <button class="zoom-btn" title="Zoom in">+</button>
-          <div class="zoom-divider"></div>
-          <button class="zoom-btn" title="Zoom out">−</button>
-          <div class="zoom-divider"></div>
-          <button class="zoom-btn" title="Fit">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 3 21 3 21 9" />
-              <polyline points="9 21 3 21 3 15" />
-              <line x1="21" y1="3" x2="14" y2="10" />
-              <line x1="3" y1="21" x2="10" y2="14" />
-            </svg>
-          </button>
-          <div class="zoom-divider"></div>
-          <button class="zoom-btn" title="Lock">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0110 0v4" />
-            </svg>
-          </button>
         </div>
       </main>
 
@@ -923,6 +911,31 @@
       combined: { lo: NaN, hi: NaN }
     };
 
+    /** Manual mode: toggled cell indices. Random mode: last applied indices (for outline). */
+    const manualSeedIndices = new Set();
+    let lastAppliedSeedIndices = [];
+    let seedMode = 'manual';
+    let seedActivatorConc = 8.0;
+    let randomSeedCount = 8;
+    let paramDragResume = false;
+    /** After re-init or parameter commit, skip EMA so old wide scale cannot wash out the colormap (all blue). */
+    let colormapInstantFrames = 0;
+
+    function invalidateDisplayScale() {
+      displayScale.combined.lo = NaN;
+      displayScale.combined.hi = NaN;
+    }
+
+    function bumpColormapInstantFrames(n) {
+      colormapInstantFrames = Math.max(colormapInstantFrames, n);
+    }
+
+    function finiteNum(x, fallback = 0) {
+      const n = typeof x === 'number' ? x : parseFloat(x);
+      if (!Number.isFinite(n)) return fallback;
+      return n;
+    }
+
     // ── DOM refs ───────────────────────────────────────────────────────────────
     const canvas = document.getElementById('sim-canvas');
     const ctx = canvas.getContext('2d');
@@ -936,8 +949,15 @@
     const btnRun = document.getElementById('btn-run');
     const runLabel = document.getElementById('run-label');
     const runIcon = document.getElementById('run-icon');
-    const btnPPIcon = document.getElementById('btn-playpause-icon');
-    const ppIconSvg = document.getElementById('pp-icon-svg');
+    const sliderSeedConc = document.getElementById('slider-seedConc');
+    const valSeedConc = document.getElementById('val-seedConc');
+    const sliderRandCount = document.getElementById('slider-randCount');
+    const valRandCount = document.getElementById('val-randCount');
+    const seedModeManual = document.getElementById('seed-mode-manual');
+    const seedModeRandom = document.getElementById('seed-mode-random');
+    const btnClearSeeds = document.getElementById('btn-clear-seeds');
+    const btnRandomizeSeeds = document.getElementById('btn-randomize-seeds');
+    const seedHint = document.getElementById('seed-hint');
 
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
@@ -952,12 +972,17 @@
     // da/dt = βa f - λa a
     // di/dt = βi f - λi i + Di(avg(i_n) - i)
     function hillResponse(signal, inhibitor) {
-      const K = Math.max(params.K, EPS);
-      const nA = params.nA;
-      const nI = params.nI;
-      const actTerm = Math.pow(Math.max(signal, 0) / K, nA);
-      const inhTerm = Math.pow(Math.max(inhibitor, 0) / K, nI);
-      return actTerm / (1 + actTerm + inhTerm);
+      const K = Math.max(finiteNum(params.K, 1), EPS);
+      const nA = clamp(finiteNum(params.nA, 1), 0.5, 12);
+      const nI = clamp(finiteNum(params.nI, 1), 0.5, 12);
+      const s = clamp(finiteNum(signal, 0), 0, 1e6);
+      const inh = clamp(finiteNum(inhibitor, 0), 0, 1e6);
+      const actTerm = Math.pow(s / K, nA);
+      const inhTerm = Math.pow(inh / K, nI);
+      const den = 1 + actTerm + inhTerm;
+      if (!Number.isFinite(actTerm) || !Number.isFinite(inhTerm) || den <= 0) return 0;
+      const f = actTerm / den;
+      return Number.isFinite(f) ? clamp(f, 0, 1) : 0;
     }
 
     function iterateHomogeneousState(seedA, seedI) {
@@ -1005,49 +1030,106 @@
       return { a: Math.max(0.01, best.a), i: Math.max(0.01, best.i) };
     }
 
+    function pickRandomDistinctIndices(count) {
+      const nCells = N * N;
+      const k = clamp(Math.floor(finiteNum(count, 1)), 1, nCells);
+      const picked = new Set();
+      while (picked.size < k) {
+        picked.add((Math.random() * nCells) | 0);
+      }
+      return Array.from(picked);
+    }
+
+    function applyActivatorSeeds(a, indices) {
+      const c = clamp(finiteNum(seedActivatorConc, 0), 0, 1e6);
+      for (let j = 0; j < indices.length; j++) {
+        const idx = indices[j];
+        if (idx >= 0 && idx < N * N) a[idx] = c;
+      }
+    }
+
     // ── Grid init ──────────────────────────────────────────────────────────────
     function initGrid() {
       const a = bufsA[0], i = bufsI[0];
       const ss = computeHomogeneousSteadyState();
-      steadyA = ss.a;
-      steadyI = ss.i;
+      steadyA = finiteNum(ss.a, 0.5);
+      steadyI = finiteNum(ss.i, 0.5);
 
       for (let k = 0; k < N * N; k++) {
         const noiseA = (Math.random() - 0.5) * 0.12;
         const noiseI = (Math.random() - 0.5) * 0.12;
-        a[k] = Math.max(0, steadyA * (1 + noiseA));
-        i[k] = Math.max(0, steadyI * (1 + noiseI));
+        a[k] = Math.max(0, finiteNum(steadyA * (1 + noiseA), 0));
+        i[k] = Math.max(0, finiteNum(steadyI * (1 + noiseI), 0));
       }
 
-      // Tiny center perturbation to help visible symmetry breaking.
-      const center = ((N / 2) | 0) * N + ((N / 2) | 0);
-      a[center] *= 1.18;
-      i[center] *= 0.90;
+      let seedIdxList;
+      if (seedMode === 'random') {
+        seedIdxList = pickRandomDistinctIndices(randomSeedCount);
+        lastAppliedSeedIndices = seedIdxList.slice();
+      } else {
+        seedIdxList = Array.from(manualSeedIndices);
+        lastAppliedSeedIndices = seedIdxList.slice();
+      }
+      applyActivatorSeeds(a, seedIdxList);
 
       curBuf = 0;
       simTime = 0;
       stepCount = 0;
-      displayScale.combined.lo = NaN;
-      displayScale.combined.hi = NaN;
+      invalidateDisplayScale();
+      bumpColormapInstantFrames(24);
+      // Keep both buffers identical so the first post-init steps never read stale geometry.
+      bufsA[1].set(bufsA[0]);
+      bufsI[1].set(bufsI[0]);
     }
 
     function getRobustRange(field, key) {
+      for (let t = 0; t < field.length; t++) {
+        if (!Number.isFinite(field[t])) field[t] = 0;
+      }
       const values = Array.from(field).sort((x, y) => x - y);
       let lo = percentile(values, 0.02);
       let hi = percentile(values, 0.98);
+      lo = finiteNum(lo, 0);
+      hi = finiteNum(hi, lo + 1e-6);
 
       if (!(hi > lo)) {
-        lo = values[0] ?? 0;
-        hi = (values[values.length - 1] ?? 1) + 1e-6;
+        lo = finiteNum(values[0], 0);
+        hi = finiteNum(values[values.length - 1], lo) + 1e-6;
+      }
+
+      const mid = (lo + hi) / 2;
+      const minSpan = Math.max(1e-4, Math.abs(mid) * 0.0005);
+      if (hi - lo < minSpan) {
+        lo = mid - minSpan / 2;
+        hi = mid + minSpan / 2;
       }
 
       const scale = displayScale[key];
-      if (!Number.isFinite(scale.lo) || !Number.isFinite(scale.hi)) {
+      const reset =
+        !Number.isFinite(scale.lo) ||
+        !Number.isFinite(scale.hi) ||
+        colormapInstantFrames > 0;
+      if (reset) {
         scale.lo = lo;
         scale.hi = hi;
       } else {
-        scale.lo = 0.92 * scale.lo + 0.08 * lo;
-        scale.hi = 0.92 * scale.hi + 0.08 * hi;
+        const currentMid = (scale.lo + scale.hi) / 2;
+        const currentSpan = Math.max(scale.hi - scale.lo, 1e-6);
+        const targetSpan = Math.max(hi - lo, 1e-6);
+        const targetMovedOutside = hi < scale.lo || lo > scale.hi;
+        const centerShift = Math.abs(mid - currentMid);
+        const midPosition = (mid - scale.lo) / currentSpan;
+        const midNearEdge = midPosition < 0.25 || midPosition > 0.75;
+        const largeJump = centerShift > 1.5 * Math.max(currentSpan, targetSpan);
+
+        if (targetMovedOutside || midNearEdge || largeJump) {
+          scale.lo = lo;
+          scale.hi = hi;
+        } else {
+          const alpha = centerShift > 0.5 * Math.max(currentSpan, targetSpan) ? 0.35 : 0.08;
+          scale.lo = (1 - alpha) * scale.lo + alpha * lo;
+          scale.hi = (1 - alpha) * scale.hi + alpha * hi;
+        }
       }
 
       if (!(scale.hi > scale.lo + 1e-6)) {
@@ -1063,14 +1145,18 @@
         sumField[idx] = a[idx] + iv[idx];
       }
       const scale = getRobustRange(sumField, 'combined');
-      const rng = scale.hi - scale.lo;
+      const rng = Math.max(scale.hi - scale.lo, 1e-9);
       const s = HEX_SIZE - 0.55;
 
       ctx.fillStyle = '#dde3e8';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+      if (colormapInstantFrames > 0) colormapInstantFrames -= 1;
+
       for (let idx = 0; idx < N * N; idx++) {
-        ctx.fillStyle = hexColor((sumField[idx] - scale.lo) / rng);
+        const sum = finiteNum(sumField[idx], 0);
+        const rawT = clamp((sum - scale.lo) / rng, 0, 1);
+        ctx.fillStyle = hexColor(rawT);
         const cx = GRID_CX[idx], cy = GRID_CY[idx];
         ctx.beginPath();
         for (let k = 0; k < 6; k++) {
@@ -1081,6 +1167,23 @@
         }
         ctx.closePath();
         ctx.fill();
+      }
+
+      ctx.strokeStyle = 'rgba(17,24,39,0.88)';
+      ctx.lineWidth = 2;
+      for (let j = 0; j < lastAppliedSeedIndices.length; j++) {
+        const idx = lastAppliedSeedIndices[j];
+        if (idx < 0 || idx >= N * N) continue;
+        const cx = GRID_CX[idx], cy = GRID_CY[idx];
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const hx = cx + s * HEX_VERTS[k][0];
+          const hy = cy + s * HEX_VERTS[k][1];
+          if (k === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.stroke();
       }
     }
 
@@ -1105,11 +1208,17 @@
         const f = hillResponse(signalA, iv[idx]);
         const lapI = avgI - iv[idx];
 
-        const nextA = a[idx] + DT * (params.ba * f - params.la * a[idx]);
-        const nextI = iv[idx] + DT * (params.bi * f - params.li * iv[idx] + params.di * lapI);
-
-        na[idx] = Math.max(0, nextA);
-        ni[idx] = Math.max(0, nextI);
+        const ba = finiteNum(params.ba, 0);
+        const bi = finiteNum(params.bi, 0);
+        const la = Math.max(finiteNum(params.la, 0), EPS);
+        const li = Math.max(finiteNum(params.li, 0), EPS);
+        const di = Math.max(finiteNum(params.di, 0), 0);
+        let nextA = a[idx] + DT * (ba * f - la * a[idx]);
+        let nextI = iv[idx] + DT * (bi * f - li * iv[idx] + di * lapI);
+        nextA = finiteNum(nextA, 0);
+        nextI = finiteNum(nextI, 0);
+        na[idx] = clamp(nextA, 0, 1e6);
+        ni[idx] = clamp(nextI, 0, 1e6);
       }
 
       curBuf = nxt;
@@ -1146,17 +1255,86 @@
       if (running) {
         runLabel.textContent = 'Pause';
         runIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-        ppIconSvg.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-        btnPPIcon.title = 'Pause';
         btnStep.disabled = true;
       } else {
         runLabel.textContent = 'Run Simulation';
         runIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-        ppIconSvg.innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>';
-        btnPPIcon.title = 'Play';
         btnStep.disabled = false;
       }
+      syncSeedCursor();
       updateDisplays();
+    }
+
+    function syncSeedCursor() {
+      if (!running && seedMode === 'manual') {
+        canvas.classList.add('seed-cursor');
+      } else {
+        canvas.classList.remove('seed-cursor');
+      }
+    }
+
+    function canvasEventToPixel(ev) {
+      const r = canvas.getBoundingClientRect();
+      const sx = canvas.width / Math.max(r.width, 1);
+      const sy = canvas.height / Math.max(r.height, 1);
+      return {
+        x: (ev.clientX - r.left) * sx,
+        y: (ev.clientY - r.top) * sy,
+      };
+    }
+
+    function hitTestHexIndex(px, py) {
+      const s = HEX_SIZE - 0.55;
+      let best = -1;
+      let bestD = 1e9;
+      for (let idx = 0; idx < N * N; idx++) {
+        const dx = px - GRID_CX[idx];
+        const dy = py - GRID_CY[idx];
+        const d = Math.hypot(dx, dy);
+        if (d < s * 0.92 && d < bestD) {
+          bestD = d;
+          best = idx;
+        }
+      }
+      return best;
+    }
+
+    function onModelSliderPointerDown() {
+      if (running) {
+        paramDragResume = true;
+        handlePause();
+      }
+    }
+
+    function resumeAfterParamDrag() {
+      if (!paramDragResume) return;
+      paramDragResume = false;
+      if (!running) {
+        startOverlay.style.display = 'none';
+        setRunningState(true);
+        rafId = requestAnimationFrame(loop);
+      }
+    }
+
+    function restartFromCurrentSettings() {
+      initGrid();
+      drawGrid();
+      updateDisplays();
+      resumeAfterParamDrag();
+    }
+
+    function handleModelParamCommit() {
+      restartFromCurrentSettings();
+    }
+
+    function handleSeedParamCommit() {
+      restartFromCurrentSettings();
+    }
+
+    function handleSeedControlInput() {
+      invalidateDisplayScale();
+      bumpColormapInstantFrames(12);
+      drawGrid();
     }
 
     // ── Controls ───────────────────────────────────────────────────────────────
@@ -1187,6 +1365,7 @@
     }
 
     function handleReset() {
+      paramDragResume = false;
       handlePause();
       setTimeout(() => {
         initGrid();
@@ -1197,10 +1376,21 @@
     }
 
     btnRun.addEventListener('click', handlePlayPause);
-    btnPPIcon.addEventListener('click', handlePlayPause);
     btnStep.addEventListener('click', handleStep);
     document.getElementById('btn-reset').addEventListener('click', handleReset);
-    document.getElementById('btn-overlay-run').addEventListener('click', handlePlay);
+    document.getElementById('btn-overlay-run').addEventListener('click', handlePlayPause);
+
+    canvas.addEventListener('click', (ev) => {
+      if (running || seedMode !== 'manual') return;
+      const { x, y } = canvasEventToPixel(ev);
+      const idx = hitTestHexIndex(x, y);
+      if (idx < 0) return;
+      if (manualSeedIndices.has(idx)) manualSeedIndices.delete(idx);
+      else manualSeedIndices.add(idx);
+      invalidateDisplayScale();
+      lastAppliedSeedIndices = Array.from(manualSeedIndices);
+      drawGrid();
+    });
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1237,23 +1427,105 @@
 
           const slider = item.querySelector('input');
           const valSpan = item.querySelector('.param-val');
+          slider.addEventListener('pointerdown', onModelSliderPointerDown);
           slider.addEventListener('input', () => {
             const v = parseFloat(slider.value);
             params[m.key] = v;
             valSpan.textContent = v.toFixed(m.dp);
             const p = ((v - m.min) / (m.max - m.min)) * 100;
             slider.style.setProperty('--pct', p + '%');
+            bumpColormapInstantFrames(8);
+            drawGrid();
           });
+          slider.addEventListener('change', handleModelParamCommit);
         });
       });
+    }
+
+    function wireSeedingUI() {
+      function pctSeedConc(v) {
+        return (v / 12) * 100;
+      }
+      function pctRand(n) {
+        return ((n - 1) / (40 - 1)) * 100;
+      }
+      sliderSeedConc.addEventListener('pointerdown', onModelSliderPointerDown);
+      sliderSeedConc.addEventListener('input', () => {
+        seedActivatorConc = parseFloat(sliderSeedConc.value);
+        valSeedConc.textContent = seedActivatorConc.toFixed(1);
+        sliderSeedConc.style.setProperty('--pct', pctSeedConc(seedActivatorConc) + '%');
+        handleSeedControlInput();
+      });
+      sliderSeedConc.addEventListener('change', handleSeedParamCommit);
+
+      sliderRandCount.addEventListener('input', () => {
+        randomSeedCount = parseInt(sliderRandCount.value, 10);
+        valRandCount.textContent = String(randomSeedCount);
+        sliderRandCount.style.setProperty('--pct', pctRand(randomSeedCount) + '%');
+      });
+
+      function setMode(mode) {
+        seedMode = mode;
+        seedHint.textContent =
+          mode === 'manual'
+            ? 'Manual: click hex cells while paused to toggle seeds. Concentration applies on reset and when seed controls are committed.'
+            : 'Random: new seed positions on reset or when a slider commit restarts the run.';
+        btnClearSeeds.disabled = mode === 'random';
+        btnClearSeeds.title =
+          mode === 'random' ? 'Switch to Manual mode to clear individual seed cells' : 'Remove all manual seed markers';
+        if (mode === 'random') {
+          restartFromCurrentSettings();
+        } else {
+          lastAppliedSeedIndices = Array.from(manualSeedIndices);
+          invalidateDisplayScale();
+          drawGrid();
+        }
+        syncSeedCursor();
+      }
+      seedModeManual.addEventListener('change', () => {
+        if (seedModeManual.checked) setMode('manual');
+      });
+      seedModeRandom.addEventListener('change', () => {
+        if (seedModeRandom.checked) setMode('random');
+      });
+
+      btnClearSeeds.addEventListener('click', () => {
+        manualSeedIndices.clear();
+        lastAppliedSeedIndices = [];
+        invalidateDisplayScale();
+        drawGrid();
+      });
+      btnRandomizeSeeds.addEventListener('click', () => {
+        if (seedMode === 'manual') {
+          manualSeedIndices.clear();
+          pickRandomDistinctIndices(randomSeedCount).forEach((ix) => manualSeedIndices.add(ix));
+        }
+        const wasRun = running;
+        if (wasRun) handlePause();
+        initGrid();
+        drawGrid();
+        updateDisplays();
+        if (wasRun) {
+          startOverlay.style.display = 'none';
+          setRunningState(true);
+          rafId = requestAnimationFrame(loop);
+        }
+      });
+
+      sliderRandCount.addEventListener('pointerdown', onModelSliderPointerDown);
+      sliderRandCount.addEventListener('change', handleSeedParamCommit);
+
+      setMode(seedModeManual.checked ? 'manual' : 'random');
     }
 
     document.getElementById('info-dim').textContent = `${N} × ${N}`;
     document.getElementById('info-cells').textContent = N * N;
 
     buildParamRows();
+    wireSeedingUI();
     initGrid();
     requestAnimationFrame(drawGrid);
+    syncSeedCursor();
     updateDisplays();
   </script>
 
