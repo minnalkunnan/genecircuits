@@ -1,18 +1,34 @@
 
+import json
+import os
+from collections import defaultdict
+
 from .protein import Protein, Gate
 from .simulate import x_pulse
-from .simulate import steady_state
-import json
-from collections import defaultdict
+
+
+LOG_PATH = os.environ.get("GENECIRCUITS_PARSER_LOG", "/tmp/backend_parser_log.txt")
+
+
+def _append_parser_log(lines):
+    try:
+        with open(LOG_PATH, "a") as log_file:
+            for line in lines:
+                log_file.write(line)
+                if not line.endswith("\n"):
+                    log_file.write("\n")
+    except OSError:
+        pass
 
 def parse_circuit(json_data):
     try:
         if 'nodes' not in json_data or 'edges' not in json_data or 'proteins' not in json_data:
             raise ValueError("JSON must contain 'nodes', 'edges', and 'proteins' fields.")
 
-        with open("backend_parser_log.txt", "w") as log_file:
-            log_file.write("Received json" + "\n")
-            log_file.write(json.dumps(json_data, indent=4) + "\n")
+        _append_parser_log([
+            "Received json",
+            json.dumps(json_data, indent=4),
+        ])
 
         id_map = {}
         currNodeID = 0
@@ -41,20 +57,20 @@ def parse_circuit(json_data):
                         initConc=protein_data['initialConcentration'],
                         degrad=protein_data['lossRate'],
                         gates=[],
-                        extConcFunc=protein_data['inputFunctionType'],
-                        extConcFuncArgs=protein_data['inputFunctionData'],
-                        beta=protein_data['beta']
+                        beta=protein_data['beta'],
+                        basal_concentration=protein_data.get('inputFunctionData', {}).get('steadyStateValue', 0)
                     )
 
-                    if p.mExtConcFunc == "pulse":
+                    if protein_data['inputFunctionType'] == "pulse":
                         p.mExtConcFunc = x_pulse
-                        temp = [val for val in list(p.mExtConcFuncArgs.values())[1:]]
-                        p.mExtConcFuncArgs = temp
-
-                    elif p.mExtConcFunc == "steady-state":
-                        p.mExtConcFunc = steady_state
-                        temp = [list(p.mExtConcFuncArgs.values())[0]]
-                        p.mExtConcFuncArgs = temp
+                        input_data = protein_data['inputFunctionData']
+                        p.mExtConcFuncArgs = [
+                            input_data['timeStart'],
+                            input_data['timeEnd'],
+                            input_data['pulsePeriod'],
+                            input_data['amplitude'],
+                            input_data['dutyCycle'],
+                        ]
 
                     protein_array.append(p)
                     type_to_node_id[name] = node_id
@@ -171,10 +187,11 @@ def parse_circuit(json_data):
             else:
                 raise ValueError(f"Unknown edge type for gate '{target}': {edge_type}")
         
-        with open("backend_parser_log.txt", "a") as log_file:
-            log_file.write("Output protein list:" + "\n")
-            for protein in protein_array:
-                log_file.write(f"Protein ID: {protein.mID}, Name: {protein.mName}, Degradation: {protein.mDegradation}, Beta: {protein.mBeta}, Gates: {[ (g.mType, g.mFirstInput, g.mSecondInput) for g in protein.mGates ]}\n")
+        _append_parser_log(["Output protein list:"])
+        for protein in protein_array:
+            _append_parser_log([
+                f"Protein ID: {protein.mID}, Name: {protein.mName}, Degradation: {protein.mDegradation}, Beta: {protein.mBeta}, Gates: {[ (g.mType, g.mFirstInput, g.mSecondInput) for g in protein.mGates ]}"
+            ])
 
         return protein_array
 

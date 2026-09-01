@@ -5,7 +5,6 @@ import {
     Flex,
     Text,
     Button,
-    ScrollArea,
     DataList,
     Code,
     IconButton,
@@ -13,7 +12,6 @@ import {
 } from "@radix-ui/themes"
 import {
     Trash2,
-    Pencil,
     Copy
 } from "lucide-react"
 import { useCircuitContext, useSelectionStateContext, useWindowStateContext } from '../hooks';
@@ -22,12 +20,13 @@ const LABEL_MAP: Record<'protein' | 'edge', Record<string, string>> = {
     protein: {
         id: "Node ID",
         label: "Protein Name",
-        initialConcentration: "Initial Concentration",
-        lossRate: "Loss Rate",
-        beta: "Beta",
+        initialConcentration: "Initial Internal Concentration",
+        lossRate: "Degradation Rate (gamma)",
+        beta: "Max Production Rate (beta)",
         inputs: "Number of Inputs",
         outputs: "Number of Outputs",
-        "inputFunctionData.steadyStateValue": "Steady State Value",
+        inputFunctionType: "External Pulse",
+        "inputFunctionData.steadyStateValue": "Basal Concentration",
         "inputFunctionData.timeStart": "Pulse Start Time",
         "inputFunctionData.timeEnd": "Pulse End Time",
         "inputFunctionData.pulsePeriod": "Pulse Period",
@@ -65,18 +64,24 @@ const PropertiesWindow: React.FC = () => {
         return getProteinData(label);
     })();
     const [localProteinData, setLocalProteinData] = useState<ProteinData | null>(null);
-    const [showProteinEditor, setShowProteinEditor] = useState(false);
     const [isFormValid, setIsFormValid] = useState<boolean>(true);
     const [localEdgeData, setLocalEdgeData] = useState<EdgeData | null>(null);
+
+    const hasIncomingRegulation = (label: string) => {
+        const matchingNodeIds = new Set(
+            nodes
+                .filter(node => node.type === "custom" && node.data.label === label)
+                .map(node => node.id)
+        );
+        return edges.some(edge => matchingNodeIds.has(edge.target));
+    };
     
     // Reset proteinData when new node clicked
     useEffect(() => {
         if (proteinData) {
             setLocalProteinData(proteinData);
-            setShowProteinEditor(false); // reset edit mode when new node selected. close the protein editor
         } else { // no data at all, something going wrong, nothing to display => reset all values
             setLocalProteinData(null);
-            setShowProteinEditor(false);
         }
     }, [proteinData]);
 
@@ -87,7 +92,6 @@ const PropertiesWindow: React.FC = () => {
     useEffect(() => {
         if (editingProtein) {
             setLocalProteinData(editingProtein);
-            setShowProteinEditor(true);          
         }
     }, [editingProtein]);
     
@@ -106,12 +110,20 @@ const PropertiesWindow: React.FC = () => {
                 )
             );
 
-            setShowProteinEditor(false); // exit edit mode after update
         }
         if(editingProtein) { // if editing protein directly from toolbox, not properties window
-            setShowProteinEditor(false);
+            setEditingProtein(null);
             setActiveTab('toolbox')
         }
+    };
+
+    const handleCancelEdit = () => {
+        if (editingProtein) {
+            setEditingProtein(null);
+            setActiveTab('toolbox');
+            return;
+        }
+        setLocalProteinData(proteinData);
     };
 
     // Delete handler
@@ -191,56 +203,64 @@ const PropertiesWindow: React.FC = () => {
                 <DataList.Item>
                     <DataList.Label minWidth="88px">Edge Type</DataList.Label>
                     <DataList.Value>
-                    <SegmentedControl.Root value={localEdgeData?.markerEnd} onValueChange={(val) => setEdges((prev: EdgeData[]) => prev.map((edge: EdgeData) => edge.id === selectedEdgeId ? { ...edge, markerEnd: val as "promote" | "repress" } : edge))}>
-                        <SegmentedControl.Item value="promote">Promote</SegmentedControl.Item>
-                        <SegmentedControl.Item value="repress">Repress</SegmentedControl.Item>
+                    <SegmentedControl.Root
+                        value={localEdgeData?.markerEnd}
+                        onValueChange={(val) => {
+                            const markerEnd = val as "promote" | "repress";
+                            setLocalEdgeData((current) => current ? { ...current, markerEnd } : current);
+                            setEdges((prev: EdgeData[]) => prev.map((edge: EdgeData) => edge.id === selectedEdgeId ? { ...edge, markerEnd } : edge));
+                        }}
+                    >
+                        <SegmentedControl.Item value="promote">Activates</SegmentedControl.Item>
+                        <SegmentedControl.Item value="repress">Inhibits</SegmentedControl.Item>
                     </SegmentedControl.Root>
+                    <Text size="1" color="gray">Arrowhead = activation; T-bar = inhibition.</Text>
                     </DataList.Value>
                 </DataList.Item>
             )}
         </DataList.Root>
     );
 
-    // Render delete and edit buttons
+    // Render delete button for edges and logic gates.
     const renderFunctionButtons = () => (
         <Flex direction="row" justify="between" align="center">
             <Button variant="outline" color="red" onClick={handleDelete}>
                 <Trash2 size={20}/> <Text size="4" weight="bold">Delete</Text>
             </Button>
-            {selectedNodeId && selectedNodeType === "custom" && proteinData && (
-                <Button variant="outline" onClick={() => setShowProteinEditor((prev) => !prev)}>
-                    <Pencil size={20} />
-                    <Text size="4" weight="bold">{showProteinEditor ? "Cancel" : "Edit"}</Text>
-                </Button>
-            )}
         </Flex>
     )
 
-    // Show protein editor if user clicks edit on a protein from the toolbox
-    if (editingProtein) return (
-        <ScrollArea
-            type="auto"
-            scrollbars="vertical"
-            style={{
-                maxHeight: 'calc(100vh - 200px)',
-                border: '1px solid var(--gray-a6)',
-                borderRadius: 'var(--radius-3)',
-                padding: '1rem',
-                width: 'auto'
-            }}
-        >
-            <Flex direction="column" gap="4" pb="4">
-                <ProteinDataForm
-                    mode="edit"
-                    proteinData={editingProtein}
-                    setProteinData={setEditingProtein}
-                    edges={edges}
-                    onValidityChange={setIsFormValid}
-                />
-                <Button onClick={handleUpdate} disabled={!isFormValid}><Text>Update Protein</Text></Button>
+    const renderProteinEditor = () => (
+        <Flex className="protein-properties-editor" direction="column" gap="4" pb="4">
+            <ProteinDataForm
+                mode="edit"
+                proteinData={localProteinData}
+                setProteinData={setLocalProteinData}
+                hasIncomingRegulation={localProteinData ? hasIncomingRegulation(localProteinData.label) : false}
+                onValidityChange={setIsFormValid}
+            />
+            <Flex className="protein-editor-actions" gap="3" justify="between" wrap="wrap">
+                {selectedNodeId && (
+                    <Button variant="outline" color="red" onClick={handleDelete}>
+                        <Trash2 size={18}/> Delete
+                    </Button>
+                )}
+                <Flex gap="3">
+                    <Button variant="soft" color="gray" onClick={handleCancelEdit}>
+                        {editingProtein ? "Cancel" : "Reset"}
+                    </Button>
+                    <Button onClick={handleUpdate} disabled={!isFormValid}>Save Changes</Button>
+                </Flex>
             </Flex>
-        </ScrollArea>
-    )
+        </Flex>
+    );
+
+    // Toolbox edits and node edits both use the same slider editor.
+    if (editingProtein) return renderProteinEditor();
+
+    if (selectedNodeId && selectedNodeType === "custom" && proteinData) {
+        return renderProteinEditor();
+    }
 
     // Text displayed when no node or edge is selected
     if (!selectedNodeId && !selectedEdgeId) return (
@@ -248,7 +268,7 @@ const PropertiesWindow: React.FC = () => {
             <Text color="gray" size="2" align="center">Select a node, protein, or edge to view its properties.</Text>
         </Flex>
     ) 
-    
+
     return (
         <Flex direction="column" gap="4">
             {/* NODE PROPERTIES */}
@@ -261,30 +281,6 @@ const PropertiesWindow: React.FC = () => {
                 </>))}
 
                 {renderFunctionButtons()}
-        
-                {/* PROTEIN DATA EDITOR */}
-                { showProteinEditor && ( 
-                    <ScrollArea type="auto" scrollbars="vertical"
-                        style={{
-                            maxHeight: 'calc(100vh - 200px)',
-                            border: '1px solid var(--gray-a6)',
-                            borderRadius: 'var(--radius-3)',
-                            padding: '1rem',
-                            width: 'auto'
-                        }}
-                    >
-                        <Flex direction="column" gap="4" pb="4">
-                            <ProteinDataForm
-                                mode="edit"
-                                proteinData={localProteinData}
-                                setProteinData={setLocalProteinData}
-                                edges={edges}
-                                onValidityChange={setIsFormValid}
-                            />
-                            <Button onClick={handleUpdate} disabled={!isFormValid}><Text>Update Protein</Text></Button>
-                        </Flex>
-                    </ScrollArea>
-                )}
             </>
             )}
 

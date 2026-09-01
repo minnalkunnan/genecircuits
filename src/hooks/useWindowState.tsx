@@ -1,11 +1,11 @@
-import React, {
+  import React, {
     createContext,
     useContext,
     useState,
     useCallback,
     ReactNode
   } from 'react';
-  import { FetchOutputImage } from '../types/FetchOutputReturnType';
+  import { FetchOutputDisplay } from '../types/FetchOutputReturnType';
   import WindowSettingsType from '../types/WindowSettingsType';
   
   // ---------- Internal Hook ----------
@@ -20,7 +20,7 @@ import React, {
   
     const [showHillCoeffMatrix, setShowHillCoeffMatrix] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<'toolbox' | 'properties' | 'circuits'>('toolbox');
-    const [outputData, setOutputData] = useState<FetchOutputImage | null>(null);
+    const [outputData, setOutputData] = useState<FetchOutputDisplay | null>(null);
   
     const [circuitSettings, setCircuitSettings] = useState({
       projectName: "Untitled Project",
@@ -88,7 +88,7 @@ import React, {
       </WindowStateContext.Provider>
     );
   };
-  
+
   export const useWindowStateContext = (): WindowState => {
     const context = useContext(WindowStateContext);
     if (!context) {
@@ -96,4 +96,3 @@ import React, {
     }
     return context;
   };
-  

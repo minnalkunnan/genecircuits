@@ -75,6 +75,21 @@ class TestProtein:
         # Degradation: 0.1 * 2.0 = 0.2
         expected_rate = 1.0 - 0.2
         assert rate == pytest.approx(expected_rate)
+
+    def test_basal_concentration_is_a_lower_equilibrium(self):
+        protein = Protein(
+            0,
+            "GFP",
+            1.0,
+            2.0,
+            [],
+            beta=5.0,
+            basal_concentration=1.0,
+        )
+
+        assert protein.calcProdRate([protein]) == pytest.approx(0.0)
+        protein.setInternalConcentration(2.0)
+        assert protein.calcProdRate([protein]) == pytest.approx(-2.0)
     
     def test_protein_calc_prod_rate_multiple_gates(self):
         class MockGate:
@@ -93,6 +108,32 @@ class TestProtein:
         # Degradation: 0.1 * 2.0 = 0.2
         expected_rate = 1.0 - 0.2
         assert rate == pytest.approx(expected_rate)
+
+    def test_simple_repression_uses_normalized_biocircuits_equation(self):
+        repressor = Protein(1, "TranscriptionFactor", 0.0, 1.0, [])
+        repressor.mExternalConc = 1.0
+        target = Protein(
+            0,
+            "GFP",
+            1.0,
+            1.0,
+            [Gate("rep_hill", firstInput=1, firstHill=1)],
+            beta=1.0,
+            basal_concentration=1.0,
+        )
+        target.mExternalConc = 0.0
+
+        # gamma * basal + beta / (1 + R**n) - gamma * GFP = 1 + 0.5 - 1
+        assert target.calcProdRate([target, repressor]) == pytest.approx(0.5)
+
+        # External target input is additive and does not change the internal ODE.
+        target.mExternalConc = 1.0
+        assert target.getConcentration() == pytest.approx(2.0)
+        assert target.calcProdRate([target, repressor]) == pytest.approx(0.5)
+
+        # More repressor always lowers regulated production toward the basal level.
+        repressor.mExternalConc = 10.0
+        assert target.calcProdRate([target, repressor]) == pytest.approx(1.0 / 11.0)
     
     def test_protein_equality(self):
         gate1 = Gate("act_hill", firstInput=0, firstHill=2)

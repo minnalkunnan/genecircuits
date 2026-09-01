@@ -13,6 +13,7 @@ import { useCircuitContext, useHillCoefficientContext, useWindowStateContext } f
 import { fetchOutput, formatBackendJson } from '../../utils';
 import CircuitDataType from "../../types/CircuitDataType";
 import WindowSettingsType from "../../types/WindowSettingsType";
+import { createSimulationChartSvg } from "../../utils/simulationChartSvg";
 
 const OutputWindow = () =>  {
 
@@ -57,7 +58,7 @@ const OutputWindow = () =>  {
     const handleRerunSimulation = async () => {
         const circuitJson: CircuitDataType = formatBackendJson(circuitSettings, nodes, edges, proteins, hillCoefficients);
         const res = await fetchOutput(circuitJson);
-        if ('type' in res && res.type === 'image') {
+        if ('type' in res && (res.type === 'image' || res.type === 'data')) {
             setOutputData(res);
         } else {
             setOutputData(null);
@@ -65,13 +66,29 @@ const OutputWindow = () =>  {
     };
 
     const handleDownloadOutput = () => {
-        if (outputData && outputData.data) {
+        if (outputData?.type === "image") {
             const a = document.createElement('a');
             a.href = outputData.data;
             a.download = 'simulation_output.png';
             a.click();
+            return;
+        }
+
+        if (outputData?.type === "data") {
+            const svg = createSimulationChartSvg(outputData.data);
+            const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'simulation_output.svg';
+            a.click();
+            URL.revokeObjectURL(url);
         }
     };
+
+    const simulationChartSvg = outputData?.type === "data"
+        ? createSimulationChartSvg(outputData.data)
+        : null;
 
     return (
         <ReactFlowPanel>
@@ -153,11 +170,18 @@ const OutputWindow = () =>  {
                 {/* OUTPUT CONTENT */}
                 {outputData ? (
                     <Flex direction="column" justify="center" px="4" py="3" gap="3" className="content-area" height="100%">
-                        <img
-                            src={outputData.data}
-                            alt="Simulation Output"
-                            className="output-image"
-                        />
+                        {outputData.type === "image" ? (
+                            <img
+                                src={outputData.data}
+                                alt="Simulation Output"
+                                className="output-image"
+                            />
+                        ) : (
+                            <div
+                                className="output-chart"
+                                dangerouslySetInnerHTML={{ __html: simulationChartSvg ?? "" }}
+                            />
+                        )}
                     </Flex>
                 ) : (
                     <Flex direction="column" justify="center" align="center" p="4" className="content-area" height="100%">

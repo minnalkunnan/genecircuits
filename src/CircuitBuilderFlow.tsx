@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useMemo, useEffect} from "react";
+import React, {useCallback, useRef, useMemo, useEffect, useState} from "react";
 import {
     ReactFlow,
     Background,
@@ -40,6 +40,14 @@ import hillCoefficientType from "./types/HillCoefficientType";
 export default function CircuitBuilderFlow() {
     const reactFlowWrapper = useRef(null);
     const { screenToFlowPosition } = useReactFlow();
+    const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 800px)').matches);
+
+    useEffect(() => {
+        const media = window.matchMedia('(max-width: 800px)');
+        const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+        media.addEventListener('change', handleChange);
+        return () => media.removeEventListener('change', handleChange);
+    }, []);
     const nodeTypes = useMemo(() => ({
         custom: CustomNode,
         and: AndGateNode,
@@ -465,16 +473,25 @@ export default function CircuitBuilderFlow() {
 
             {/* TOOLBOX AND REACT FLOW */}
             <div className="bottom-container">
-                <PanelGroup className="circuit-builder-container" direction="horizontal">
+                <PanelGroup
+                    key={isMobile ? 'mobile-layout' : 'desktop-layout'}
+                    className="circuit-builder-container"
+                    direction={isMobile ? 'vertical' : 'horizontal'}
+                >
                     {/* Left Pane (Toolbox + Properties Window) */}
-                    <Panel className="left-pane min-w-128" defaultSize={30} minSize={27} maxSize={50}>
-                        <div className="flex flex-col h-full w-full">
+                    <Panel
+                        className="left-pane min-w-128"
+                        defaultSize={isMobile ? 42 : 30}
+                        minSize={isMobile ? 28 : 27}
+                        maxSize={isMobile ? 65 : 50}
+                    >
+                        <div className="circuit-sidebar">
                             {/* Tab Navigation */}
                             <Tabs.Root
                                 defaultValue="toolbox"
                                 value={activeTab}
                                 onValueChange={setActiveTab as (value: string) => void}
-                                className="h-full w-full flex flex-col"
+                                className="circuit-sidebar-tabs"
                             >
                                 <Tabs.List style={{
                                     width: '100%',
@@ -499,13 +516,11 @@ export default function CircuitBuilderFlow() {
 
                                 {/* Tab Content */}
                                 <ScrollArea
+                                    className="circuit-sidebar-scroll"
                                     type="scroll"
                                     scrollbars="vertical"
-                                    style={{
-                                        maxHeight: 'calc(100vh - 100px)',
-                                    }}
                                 >
-                                <Box px="4" mt="6" className="h-full overflow-y-auto">
+                                <Box px="4" mt="6" className="circuit-sidebar-content">
                                     {/* TOOLBOX */}
                                     <Tabs.Content value="toolbox">
                                         <Toolbox/>
@@ -528,10 +543,16 @@ export default function CircuitBuilderFlow() {
                         </div>
                     </Panel>
 
-                    <PanelResizeHandle className="resize-handle-vertical"/>
+                    <PanelResizeHandle className={isMobile ? "resize-handle-horizontal" : "resize-handle-vertical"}/>
 
                     {/* Right Pane (circuit building workspace area) */}
-                    <Panel className="flow-wrapper" ref={reactFlowWrapper} defaultSize={80} minSize={50} maxSize={90}>
+                    <Panel
+                        className="flow-wrapper"
+                        ref={reactFlowWrapper}
+                        defaultSize={isMobile ? 58 : 70}
+                        minSize={isMobile ? 35 : 50}
+                        maxSize={isMobile ? 72 : 90}
+                    >
                         {showOutputWindow && renderOutputWindow()}
                         
                         <ReactFlow className="react-flow"

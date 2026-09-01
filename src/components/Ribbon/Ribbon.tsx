@@ -13,8 +13,7 @@ import {
     X,
     Dna,
     AreaChart,
-    Grid3X3,
-    Hexagon
+    Grid3X3
 } from "lucide-react";
 import {
     Flex,
@@ -25,7 +24,6 @@ import {
     Button,
     Tooltip,
     Dialog,
-    Theme,
     DropdownMenu,
     Slider,
     AlertDialog
@@ -157,7 +155,7 @@ const TopRibbon: React.FC = () => {
         setTimeoutId(tId);
         try {
             const res = await fetchOutput(circuitJson);
-            if ('type' in res && res.type === 'image') {
+            if ('type' in res && (res.type === 'image' || res.type === 'data')) {
                 setOutputData(res);
             } else {
                 setOutputData(null);
@@ -210,24 +208,24 @@ const TopRibbon: React.FC = () => {
     }
 
     return (
-        <Theme>
-            <Flex direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid #ccc' }}>
+        <>
+            <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid #ccc' }}>
                 {/* LEFT */}
-                <Flex gap="3" align="center">
+                <Flex className="circuit-brand-actions" gap="3" align="center">
                     <Dna color="var(--accent-9)" />
-                    <Text weight="bold" size="3">
+                    <Text className="circuit-app-title" weight="bold" size="3">
                         Genetic Circuits Simulator
                     </Text>
 
-                    <Flex gap="2" align="center">
+                    <Flex className="circuit-file-actions" gap="2" align="center">
                         <Tooltip content="Open File">
-                            <IconButton variant="outline" size="3" color="gray" onClick={() => setShowImportWindow(true)}>
+                            <IconButton aria-label="Open project" variant="outline" size="3" color="gray" onClick={() => setShowImportWindow(true)}>
                                 <FolderOpen size={20} />
                             </IconButton>
                         </Tooltip>
 
                         <Tooltip content="Save Project">
-                            <IconButton variant="outline" size="3" color="gray" onClick={() => {handleSaveProject()}}>
+                            <IconButton aria-label="Save project" variant="outline" size="3" color="gray" onClick={() => {handleSaveProject()}}>
                                 <Save size={20} />
                             </IconButton>
                         </Tooltip>
@@ -235,7 +233,7 @@ const TopRibbon: React.FC = () => {
                         <DropdownMenu.Root open={open} onOpenChange={setOpen}>
                             <Tooltip content="Export Circuit">
                                 <DropdownMenu.Trigger>
-                                    <IconButton variant="outline" size="3" color="gray">
+                                    <IconButton aria-label="Export circuit" variant="outline" size="3" color="gray">
                                         <Download size={20} />
                                     </IconButton>
                                 </DropdownMenu.Trigger>
@@ -249,57 +247,64 @@ const TopRibbon: React.FC = () => {
                 </Flex>
 
                 {/* PROJECT NAME FIELD */}
-                <Box maxWidth="400px" flexGrow="1" mx="4">
+                <Box className="circuit-project-name" maxWidth="400px" flexGrow="1" mx="4">
                     <TextField.Root size="2" variant="surface" style={{textAlign: "center"}}
                                     value={circuitSettings.projectName}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCircuitSettings({ ...circuitSettings, projectName: e.target.value })}
                     />
                 </Box>
 
-                <Flex gap="2" align="center">
+                <Flex className="circuit-sim-actions" gap="2" align="center">
                     <Tooltip content="Hill Coefficient Matrix">
-                        <IconButton variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
+                        <IconButton aria-label="Hill coefficient matrix" variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
                             <Grid3X3 size={20} />
                         </IconButton>
                     </Tooltip>
 
-                    <Tooltip content="Turing Pattern Simulator">
-                        <IconButton asChild variant="outline" size="3" color="gray">
-                            <a href={turingPatternSimulatorHref()} aria-label="Open Turing pattern simulator">
-                                <Hexagon size={20} />
-                            </a>
-                        </IconButton>
-                    </Tooltip>
-
                     <Button
+                        className="circuit-run-button"
                         variant="solid"
                         size="3"
+                        aria-label={isRunning ? "Stop simulation" : "Run simulation"}
                         onClick={handlePlayClick}
                         disabled={false}
                         style={isRunning ? { backgroundColor: '#e74c3c', borderColor: '#e74c3c' } : {}}
                     >
-                        {isRunning ? (<><X size={20} /> Stop</>) : (<><Play size={20} /> Run Simulation</>)}
+                        {isRunning
+                            ? (<><X size={20} /><span className="run-button-label">Stop</span></>)
+                            : (<><Play size={20} /><span className="run-button-label">Run Simulation</span></>)}
                     </Button>
 
                     <Tooltip content={showOutputWindow ? "Close Output" : "Show Output"}>
-                        <IconButton variant="outline" size="3" color="gray" onClick={() => setShowOutputWindow(!showOutputWindow)}>
+                        <IconButton aria-label={showOutputWindow ? "Close simulation output" : "Show simulation output"} variant="outline" size="3" color="gray" onClick={() => setShowOutputWindow(!showOutputWindow)}>
                             {showOutputWindow ? <X size={20} /> : <AreaChart size={20} />}
                         </IconButton>
                     </Tooltip>
 
                     <Tooltip content="Clear Canvas">
-                        <IconButton variant="outline" size="3" color="gray" onClick={() => setShowClearConfirmation(true)}>
+                        <IconButton aria-label="Clear canvas" variant="outline" size="3" color="gray" onClick={() => setShowClearConfirmation(true)}>
                             <Trash2 size={20} />
                         </IconButton>
                     </Tooltip>
 
                     <Tooltip content="Settings">
-                        <IconButton variant="outline" size="3" color="gray" onClick={() => setShowSettingsWindow(!showSettingsWindow)}>
+                        <IconButton aria-label="Circuit settings" variant="outline" size="3" color="gray" onClick={() => setShowSettingsWindow(!showSettingsWindow)}>
                             <Settings size={20} />
                         </IconButton>
                     </Tooltip>
                 </Flex>
             </Flex>
+
+            <nav className="app-mode-bar" aria-label="Choose simulator">
+                <div className="app-mode-switch">
+                    <span className="app-mode-option active" aria-current="page">
+                        Gene Circuit Builder
+                    </span>
+                    <a className="app-mode-option" href={turingPatternSimulatorHref()}>
+                        Reaction-Diffusion
+                    </a>
+                </div>
+            </nav>
 
 
             {/* IMPORT WINDOW */}
@@ -391,7 +396,7 @@ const TopRibbon: React.FC = () => {
             </Dialog.Root>
 
 
-        </Theme>
+        </>
     );
 };
 

@@ -114,3 +114,8 @@ backend/test/simulation_test_data/*.htmlg
 
 # build outputs
 web-dist/
+.vercel
+
+# Python caches
+__pycache__/
+*.pyc

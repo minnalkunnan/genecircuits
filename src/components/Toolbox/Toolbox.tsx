@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useCircuitContext, useSelectionStateContext, useWindowStateContext, useHillCoefficientContext } from '../../hooks';
-import { ProteinData } from "../../types";
+import { AppNode, ProteinData } from "../../types";
 import '../../index.css';
 import CreateProteinWindow from '../CreateProteinWindow';
 import {
@@ -12,7 +12,8 @@ import {
     ScrollArea,
     Grid,
     IconButton,
-    DropdownMenu
+    DropdownMenu,
+    Tooltip
 } from '@radix-ui/themes'
 import {
     Plus,
@@ -24,7 +25,7 @@ import {
 import {useAlert} from "../Alerts/AlertProvider";
 
 export const Toolbox: React.FC = () => {
-    const { proteins, setProteinData, setNodes } = useCircuitContext();
+    const { proteins, setProteinData, setNodes, getId } = useCircuitContext();
     const { setEditingProtein } = useSelectionStateContext();
     const { setActiveTab } = useWindowStateContext();
     const { setHillCoefficients, hillCoefficients } = useHillCoefficientContext();
@@ -53,6 +54,34 @@ export const Toolbox: React.FC = () => {
         }
         e.dataTransfer.effectAllowed = "move";
     };
+
+    const addNodeToCanvas = (type: 'and' | 'or' | 'custom', data?: ProteinData) => {
+        const nodeData = data ? ({ ...data } as ProteinData & { id?: string }) : null;
+        if (nodeData) delete nodeData.id;
+
+        setNodes((currentNodes: AppNode[]) => {
+            const index = currentNodes.length;
+            const newNode: AppNode = {
+                id: getId(type),
+                type,
+                position: {
+                    x: 60 + (index % 3) * 90,
+                    y: 60 + Math.floor(index / 3) * 90,
+                },
+                data: nodeData,
+            };
+            return [...currentNodes, newNode];
+        });
+
+        if (nodeData?.label) setProteinData(nodeData.label, nodeData);
+    };
+
+    const addOnKeyboard = (event: React.KeyboardEvent, type: 'and' | 'or') => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            addNodeToCanvas(type);
+        }
+    };
     
 
     // Filters the protein list when user searches
@@ -80,6 +109,12 @@ export const Toolbox: React.FC = () => {
                 <Box
                     className='dndnode'
                     draggable
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Add AND node to canvas"
+                    title="Tap to add or drag onto the canvas"
+                    onClick={() => addNodeToCanvas('and')}
+                    onKeyDown={(event) => addOnKeyboard(event, 'and')}
                     onDragStart={(e: React.DragEvent) => onDragStart(e, 'and')}
                 >
                     <Flex align="center" gap="4">
@@ -89,12 +124,19 @@ export const Toolbox: React.FC = () => {
                 <Box
                     className='dndnode'
                     draggable
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Add OR node to canvas"
+                    title="Tap to add or drag onto the canvas"
+                    onClick={() => addNodeToCanvas('or')}
+                    onKeyDown={(event) => addOnKeyboard(event, 'or')}
                     onDragStart={(e: React.DragEvent) => onDragStart(e, 'or')}
                 >
                     <Flex align="center" gap="4">
                         <Tally2 size={20} className='gate-icon'/> <Text weight="medium" size="3">OR Node</Text>
                     </Flex>
                 </Box>
+                <Text size="1" color="gray">Tap to add a node, or drag it onto the canvas.</Text>
             </Flex>
 
             {/* PROTIEN NODES */}
@@ -158,24 +200,37 @@ export const Toolbox: React.FC = () => {
                                     {/* <Text size="1" color="gray">{protein.label}</Text> */}
                                 </Flex>
 
-                                {/* Protein Card Options. Ellipsis button */}
-                                <DropdownMenu.Root>
-                                    <DropdownMenu.Trigger>
+                                <Flex align="center" gap="1">
+                                    <Tooltip content={`Add ${protein.label} to canvas`}>
                                         <IconButton
-                                            variant='ghost'
-                                            color='gray'
+                                            variant="ghost"
+                                            color="jade"
+                                            aria-label={`Add ${protein.label} to canvas`}
+                                            onClick={() => addNodeToCanvas('custom', protein)}
                                         >
-                                            <Ellipsis size={20} />
+                                            <Plus size={18} />
                                         </IconButton>
-                                    </DropdownMenu.Trigger>
-                                    <DropdownMenu.Content>
-                                        <DropdownMenu.Item onClick={() => {
-                                            setEditingProtein && setEditingProtein(protein)
-                                            setActiveTab('properties')
-                                        }}>Edit</DropdownMenu.Item>
-                                        <DropdownMenu.Item color="red" onClick={() => handleDeleteProtein(protein.label)}>Delete</DropdownMenu.Item>
-                                    </DropdownMenu.Content>
-                                </DropdownMenu.Root>
+                                    </Tooltip>
+                                    {/* Protein Card Options. Ellipsis button */}
+                                    <DropdownMenu.Root>
+                                        <DropdownMenu.Trigger>
+                                            <IconButton
+                                                variant='ghost'
+                                                color='gray'
+                                                aria-label={`Options for ${protein.label}`}
+                                            >
+                                                <Ellipsis size={20} />
+                                            </IconButton>
+                                        </DropdownMenu.Trigger>
+                                        <DropdownMenu.Content>
+                                            <DropdownMenu.Item onClick={() => {
+                                                setEditingProtein && setEditingProtein(protein)
+                                                setActiveTab('properties')
+                                            }}>Edit</DropdownMenu.Item>
+                                            <DropdownMenu.Item color="red" onClick={() => handleDeleteProtein(protein.label)}>Delete</DropdownMenu.Item>
+                                        </DropdownMenu.Content>
+                                    </DropdownMenu.Root>
+                                </Flex>
                                 
                             </Flex>
                         </Box>

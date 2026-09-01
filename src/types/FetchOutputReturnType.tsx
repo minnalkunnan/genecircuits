@@ -21,4 +21,5 @@ export interface FetchOutputData {
     data: SimulationData;
 }
 
+export type FetchOutputDisplay = FetchOutputImage | FetchOutputData;
 export type FetchOutputResult = FetchOutputCancelled | FetchOutputError | FetchOutputImage | FetchOutputData;

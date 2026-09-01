@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Turing Pattern Simulator</title>
+  <title>Reaction-Diffusion Simulator</title>
   <style>
     /* Align with Genetic Circuit Simulator (genecircuits/src/index.css + Ribbon) */
     :root {
@@ -221,6 +221,51 @@
       min-width: 44px;
     }
 
+    .app-mode-bar {
+      display: flex;
+      justify-content: center;
+      padding: 6px 12px;
+      background: #f3f7f5;
+      border-bottom: 1px solid #d9e2de;
+      flex-shrink: 0;
+    }
+
+    .app-mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: min(100%, 420px);
+      padding: 3px;
+      border: 1px solid #cbd8d2;
+      border-radius: 9px;
+      background: #e7efeb;
+    }
+
+    .app-mode-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 5px 16px;
+      border-radius: 6px;
+      color: #53645d;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .app-mode-option:hover {
+      color: #1f6f58;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .app-mode-option.active {
+      color: #174f3f;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
+    }
+
     .body {
       display: flex;
       flex: 1;
@@ -396,33 +441,33 @@
     .legend-bar {
       height: 10px;
       border-radius: 4px;
-      background: linear-gradient(to right, #3b82f6, #ef4444);
+      background: linear-gradient(to right, rgb(59, 76, 192), rgb(221, 221, 221) 50%, rgb(180, 4, 38));
       border: 1px solid var(--border-subtle);
     }
 
     .legend-lbls {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 6px;
-      font-family: var(--font-mono);
+      margin-top: 7px;
+      line-height: 1.25;
     }
 
-    .legend-colors {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-top: 8px;
-      font-weight: 600;
+    .legend-lbls span:nth-child(2) {
+      text-align: center;
     }
 
-    .lc-blue {
-      color: #3b82f6;
+    .legend-lbls span:last-child {
+      text-align: right;
     }
 
-    .lc-red {
-      color: #ef4444;
+    .legend-note {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .eq-card {
@@ -511,7 +556,7 @@
     #sim-canvas {
       display: block;
       max-width: 100%;
-      max-height: calc(100vh - 64px);
+      max-height: calc(100vh - 112px);
     }
 
     #start-overlay {
@@ -614,6 +659,153 @@
     #sim-canvas.seed-cursor {
       cursor: crosshair;
     }
+
+    @media (max-width: 800px) {
+      header {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "brand"
+          "project"
+          "actions";
+        gap: 8px;
+        padding: 8px 10px;
+      }
+
+      .h-left {
+        grid-area: brand;
+        justify-content: center;
+        gap: 7px;
+      }
+
+      .logo-home {
+        width: 32px;
+        height: 32px;
+      }
+
+      .app-title {
+        font-size: 14px;
+      }
+
+      .h-center {
+        grid-area: project;
+        width: 100%;
+        padding: 0;
+      }
+
+      .proj-input {
+        max-width: none;
+        min-height: 40px;
+      }
+
+      .h-right {
+        grid-area: actions;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .icon-btn,
+      .run-btn,
+      .time-badge {
+        min-height: 40px;
+      }
+
+      .run-btn {
+        width: 44px;
+        padding-inline: 0;
+      }
+
+      #run-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .time-badge {
+        padding-inline: 9px;
+      }
+
+      .time-badge-val {
+        min-width: 40px;
+      }
+
+      .app-mode-bar {
+        padding: 4px 8px;
+      }
+
+      .app-mode-option {
+        min-height: 36px;
+        padding-inline: 8px;
+        white-space: normal;
+        text-align: center;
+      }
+
+      .body {
+        flex-direction: column;
+      }
+
+      main {
+        order: 1;
+        flex: 0 0 42%;
+        width: 100%;
+        min-width: 0;
+        min-height: 210px;
+      }
+
+      aside {
+        order: 2;
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        border-top: 1px solid var(--border-subtle);
+        border-right: 0;
+      }
+
+      .sidebar-scroll {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .canvas-wrap {
+        display: flex;
+        max-width: calc(100% - 20px);
+        max-height: calc(100% - 16px);
+      }
+
+      #sim-canvas {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        touch-action: manipulation;
+      }
+
+      .overlay-card {
+        width: min(88%, 320px);
+        padding: 18px 20px;
+      }
+
+      .overlay-hex {
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      .overlay-sub {
+        margin-bottom: 14px;
+      }
+
+      .seed-btn,
+      .tab-btn {
+        min-height: 44px;
+      }
+    }
   </style>
 </head>
 
@@ -629,14 +821,22 @@
             <polygon points="14,8 19.5,11.2 19.5,17.8 14,21 8.5,17.8 8.5,11.2" fill="#3ca683" opacity="0.25" />
           </svg>
         </a>
-        <span class="app-title">Turing Pattern Simulator</span>
+        <span class="app-title">Reaction-Diffusion Simulator</span>
       </div>
 
       <div class="h-center">
-        <input class="proj-input" value="Untitled Simulation" spellcheck="false" />
+        <input class="proj-input" id="project-title" value="Untitled Reaction-Diffusion Simulation" spellcheck="false"
+          aria-label="Simulation title" />
       </div>
 
       <div class="h-right">
+        <button class="icon-btn" id="btn-save-config" title="Save configuration" aria-label="Save configuration">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+        </button>
         <button class="icon-btn" id="btn-step" title="Step one frame (paused)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <polygon points="5 3 19 12 5 21 5 3" />
@@ -656,7 +856,7 @@
           </svg>
           <span class="time-badge-val" id="time-display">0.0</span>
         </div>
-        <button class="icon-btn" id="btn-reset" title="Reset">
+        <button class="icon-btn" id="btn-reset" title="Restart from current seeds" aria-label="Restart from current seeds">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <polyline points="1 4 1 10 7 10" />
             <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
@@ -664,6 +864,13 @@
         </button>
       </div>
     </header>
+
+    <nav class="app-mode-bar" aria-label="Choose simulator">
+      <div class="app-mode-switch">
+        <a class="app-mode-option" href="index.html">Gene Circuit Builder</a>
+        <span class="app-mode-option active" aria-current="page">Reaction-Diffusion</span>
+      </div>
+    </nav>
 
     <!-- ── Body ── -->
     <div class="body">
@@ -688,11 +895,11 @@
             <div class="seed-row">
               <span class="param-sym">a₀</span>
               <span class="param-lbl">Activator seed concentration</span>
-              <span class="param-val" id="val-seedConc">8.00</span>
+              <span class="param-val" id="val-seedConc">10.00</span>
             </div>
             <div class="param-item" style="border-bottom:none;padding-top:0">
-              <input type="range" class="slider" id="slider-seedConc" min="0" max="12" step="0.1" value="8"
-                style="--pct:66.67%" />
+              <input type="range" class="slider" id="slider-seedConc" min="0" max="12" step="0.1" value="10"
+                style="--pct:83.33%" aria-label="Activator seed concentration" />
             </div>
             <div class="seed-row">
               <span class="param-sym">#</span>
@@ -701,14 +908,16 @@
             </div>
             <div class="param-item" style="border-bottom:none;padding-top:0">
               <input type="range" class="slider" id="slider-randCount" min="1" max="40" step="1" value="8"
-                style="--pct:17.95%" />
+                style="--pct:17.95%" aria-label="Random seed count" />
             </div>
             <div class="seed-actions">
               <button type="button" class="seed-btn" id="btn-clear-seeds">Clear Seeds</button>
               <button type="button" class="seed-btn" id="btn-randomize-seeds">Randomize Seeds</button>
+              <button type="button" class="seed-btn" id="btn-restart-simulation">Restart</button>
             </div>
             <p class="seed-hint" id="seed-hint">Manual: click hex cells while paused to toggle seeds. Random: new seed
               positions on each reset or run.</p>
+            <p class="seed-hint">Parameter changes restart from the current seeds. A running simulation resumes; a paused simulation stays paused.</p>
 
             <div class="section-head">Reaction Model</div>
             <!-- param rows injected by JS -->
@@ -720,21 +929,18 @@
             <div class="section-head">Hill Function</div>
             <div id="params-hill"></div>
 
-            <div class="section-head" id="legend-section-head">Total concentration (a + i)</div>
+            <div class="section-head" id="legend-section-head">Cell color: relative balance</div>
             <div class="legend-wrap">
-              <div class="legend-bar"></div>
-              <div class="legend-lbls"><span id="legend-low">Low (a + i)</span><span id="legend-high">High (a + i)</span></div>
-              <div class="legend-colors">
-                <span class="lc-blue">● Blue</span>
-                <span class="lc-red">● Red</span>
-              </div>
+              <div class="legend-bar" role="img" aria-label="Blue for inhibitor-dominant cells, gray for balanced cells, and red for activator-dominant cells"></div>
+              <div class="legend-lbls"><span>More inhibitor</span><span>Balanced</span><span>More activator</span></div>
+              <p class="legend-note">Blue means normalized inhibitor exceeds activator. Red means normalized activator exceeds inhibitor. Gray means they are balanced or both near zero.</p>
             </div>
           </div>
 
           <!-- Equations Tab -->
           <div class="tab-panel" id="tab-equations">
             <div class="section-head">Neighbourhood</div>
-            <div class="eq-card"><span class="eq-lbl">Sum</span><span class="eq-val">S̄ = avg(aₙ)</span></div>
+            <div class="eq-card"><span class="eq-lbl">Signal</span><span class="eq-val">S̄ = avg(aₙ)</span></div>
             <div class="eq-card"><span class="eq-lbl">Hill</span><span class="eq-val accent">f = A/(1+A+I), A=(S̄/K)^{n_a}, I=(i/K)^{n_i}</span></div>
             <div class="section-head">Dynamics</div>
             <div class="eq-card"><span class="eq-lbl">Activator</span><span class="eq-val">∂a/∂t = βa·f(S̄,i) − λa·a</span>
@@ -755,13 +961,14 @@
             <div class="info-row"><span class="info-lbl">Step Count</span><span class="info-val"
                 id="info-steps">0</span></div>
             <div class="info-row"><span class="info-lbl">Topology</span><span class="info-val">Hex lattice</span></div>
+            <div class="info-row"><span class="info-lbl">Activator Diffusion</span><span class="info-val">Da = 0.00</span></div>
             <div class="section-head">Status</div>
             <div class="info-row"><span class="info-lbl">State</span><span class="info-val" id="info-state">⏸
                 Paused</span></div>
             <div class="info-row"><span class="info-lbl">Time</span><span class="info-val" id="info-time">0.0</span>
             </div>
             <div class="info-row"><span class="info-lbl">Color scale</span><span class="info-val"
-                id="info-field">Total a + i</span></div>
+                id="info-field">Normalized activator vs inhibitor</span></div>
           </div>
 
         </div>
@@ -777,7 +984,7 @@
             <div class="overlay-card">
               <div class="overlay-hex">⬡</div>
               <div class="overlay-title">Ready to Simulate</div>
-              <div class="overlay-sub">Small perturbations grow near a steady state</div>
+              <div class="overlay-sub">Seed a few cells and let inhibition spread</div>
               <button class="run-btn" id="btn-overlay-run" style="margin-left:0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3" />
@@ -795,18 +1002,20 @@
   
   <script>
     // ═══════════════════════════════════════════════════════════════════════════
-    //  Turing Pattern Reaction-Diffusion Simulator
-    //  Revised to behave more like a juxtacrine activator / diffusive inhibitor
-    //  system, with smaller numerical steps and steadier visualization.
+    //  Reaction-Diffusion Simulator
+    //  Reference-aligned juxtacrine activator / diffusive inhibitor model.
+    //  Start from an off background, seed a few activator spikes, and let the
+    //  pattern grow from those perturbations.
     // ═══════════════════════════════════════════════════════════════════════════
 
     // ── Constants ──────────────────────────────────────────────────────────────
     const N = 52;
     const HEX_SIZE = 6.8;
-    const DT = 0.01;                 // matches the reference config more closely
+    const DT = 0.01;
     const SUBSTEPS_PER_FRAME = 8;    // multiple stable sim steps per render
-    const CLR_LOW = [59, 130, 246];
-    const CLR_HIGH = [239, 68, 68];
+    const CLR_INHIBITOR = [59, 76, 192];
+    const CLR_NEUTRAL = [221, 221, 221];
+    const CLR_ACTIVATOR = [180, 4, 38];
     const EPS = 1e-9;
 
     // ── Parameter definitions ──────────────────────────────────────────────────
@@ -818,20 +1027,20 @@
       { key: 'li', label: 'Inhibitor Degrade', sym: 'λi', min: 0.20, max: 3.00, step: 0.05, dp: 2, group: 'reaction' },
       { key: 'di', label: 'Inhibitor Diffusion', sym: 'Di', min: 0.00, max: 15.00, step: 0.10, dp: 2, group: 'diffusion' },
       { key: 'K', label: 'Signal Threshold', sym: 'K', min: 0.10, max: 3.00, step: 0.05, dp: 2, group: 'hill' },
-      { key: 'nA', label: 'Hill (activator)', sym: 'n_a', min: 1.00, max: 6.00, step: 0.25, dp: 2, group: 'hill' },
+      { key: 'nA', label: 'Hill (activator)', sym: 'n_a', min: 1.00, max: 16.00, step: 0.25, dp: 2, group: 'hill' },
       { key: 'nI', label: 'Hill (inhibitor)', sym: 'n_i', min: 1.00, max: 6.00, step: 0.25, dp: 2, group: 'hill' },
     ];
 
     // Tuned starting point: local activation, stronger long-range inhibition.
     const DEFAULT_PARAMS = {
       ba: 6.00,
-      bi: 4.00,
+      bi: 8.00,
       la: 1.00,
-      li: 1.00,
+      li: 0.30,
       di: 10.00,
       K: 1.00,
-      nA: 3.00,
-      nI: 3.00,
+      nA: 10.00,
+      nI: 4.00,
     };
 
     // ── Precomputed geometry ───────────────────────────────────────────────────
@@ -880,18 +1089,14 @@
       return Math.max(lo, Math.min(hi, x));
     }
 
-    function hexColor(val) {
-      const t = clamp(val, 0, 1);
-      const r = (CLR_LOW[0] + (CLR_HIGH[0] - CLR_LOW[0]) * t) | 0;
-      const g = (CLR_LOW[1] + (CLR_HIGH[1] - CLR_LOW[1]) * t) | 0;
-      const b = (CLR_LOW[2] + (CLR_HIGH[2] - CLR_LOW[2]) * t) | 0;
+    function coolwarmColor(score) {
+      const signed = clamp(score, -1, 1);
+      const strength = Math.pow(Math.abs(signed), 0.78);
+      const target = signed < 0 ? CLR_INHIBITOR : CLR_ACTIVATOR;
+      const r = (CLR_NEUTRAL[0] + (target[0] - CLR_NEUTRAL[0]) * strength) | 0;
+      const g = (CLR_NEUTRAL[1] + (target[1] - CLR_NEUTRAL[1]) * strength) | 0;
+      const b = (CLR_NEUTRAL[2] + (target[2] - CLR_NEUTRAL[2]) * strength) | 0;
       return `rgb(${r},${g},${b})`;
-    }
-
-    function percentile(sorted, p) {
-      if (sorted.length === 0) return 0;
-      const idx = Math.floor(clamp(p, 0, 1) * (sorted.length - 1));
-      return sorted[idx];
     }
 
     // ── Simulation state ───────────────────────────────────────────────────────
@@ -903,33 +1108,16 @@
     let params = { ...DEFAULT_PARAMS };
     let running = false;
     let rafId = null;
-    let steadyA = 0.5;
-    let steadyI = 0.5;
-
-    const sumField = new Float32Array(N * N);
-    const displayScale = {
-      combined: { lo: NaN, hi: NaN }
-    };
+    let steadyA = 0;
+    let steadyI = 0;
 
     /** Manual mode: toggled cell indices. Random mode: last applied indices (for outline). */
     const manualSeedIndices = new Set();
     let lastAppliedSeedIndices = [];
     let seedMode = 'manual';
-    let seedActivatorConc = 8.0;
+    let seedActivatorConc = 10.0;
     let randomSeedCount = 8;
     let paramDragResume = false;
-    /** After re-init or parameter commit, skip EMA so old wide scale cannot wash out the colormap (all blue). */
-    let colormapInstantFrames = 0;
-
-    function invalidateDisplayScale() {
-      displayScale.combined.lo = NaN;
-      displayScale.combined.hi = NaN;
-    }
-
-    function bumpColormapInstantFrames(n) {
-      colormapInstantFrames = Math.max(colormapInstantFrames, n);
-    }
-
     function finiteNum(x, fallback = 0) {
       const n = typeof x === 'number' ? x : parseFloat(x);
       if (!Number.isFinite(n)) return fallback;
@@ -947,6 +1135,8 @@
     const startOverlay = document.getElementById('start-overlay');
     const btnStep = document.getElementById('btn-step');
     const btnRun = document.getElementById('btn-run');
+    const btnSaveConfig = document.getElementById('btn-save-config');
+    const projectTitleInput = document.getElementById('project-title');
     const runLabel = document.getElementById('run-label');
     const runIcon = document.getElementById('run-icon');
     const sliderSeedConc = document.getElementById('slider-seedConc');
@@ -957,77 +1147,32 @@
     const seedModeRandom = document.getElementById('seed-mode-random');
     const btnClearSeeds = document.getElementById('btn-clear-seeds');
     const btnRandomizeSeeds = document.getElementById('btn-randomize-seeds');
+    const btnRestartSimulation = document.getElementById('btn-restart-simulation');
     const seedHint = document.getElementById('seed-hint');
 
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
 
     // ── Model ──────────────────────────────────────────────────────────────────
-    // We use a juxtacrine activator signal from neighboring activator levels,
-    // but include local inhibitor repression in the Hill response. That makes
-    // the activator and inhibitor actually coupled, unlike the original toy form.
-    //
-    // signal = average(neighbor activator)
-    // A = (S̄/K)^{n_a}, I = (i/K)^{n_i}, f = A / (1 + A + I)
-    // da/dt = βa f - λa a
-    // di/dt = βi f - λi i + Di(avg(i_n) - i)
+    // Align with the reference juxtacrine example:
+    // local activator is driven by neighbour activator signal, while inhibitor
+    // is produced from the same Hill response and diffuses through the grid.
     function hillResponse(signal, inhibitor) {
       const K = Math.max(finiteNum(params.K, 1), EPS);
-      const nA = clamp(finiteNum(params.nA, 1), 0.5, 12);
-      const nI = clamp(finiteNum(params.nI, 1), 0.5, 12);
+      const nA = clamp(finiteNum(params.nA, 1), 0.5, 16);
+      const nI = clamp(finiteNum(params.nI, 1), 0.5, 16);
       const s = clamp(finiteNum(signal, 0), 0, 1e6);
       const inh = clamp(finiteNum(inhibitor, 0), 0, 1e6);
-      const actTerm = Math.pow(s / K, nA);
-      const inhTerm = Math.pow(inh / K, nI);
+      const actTerm = s > 0 ? Math.pow(s / K, nA) : 0;
+      const inhTerm = inh > 0 ? Math.pow(inh / K, nI) : 0;
       const den = 1 + actTerm + inhTerm;
       if (!Number.isFinite(actTerm) || !Number.isFinite(inhTerm) || den <= 0) return 0;
       const f = actTerm / den;
       return Number.isFinite(f) ? clamp(f, 0, 1) : 0;
     }
 
-    function iterateHomogeneousState(seedA, seedI) {
-      let a = Math.max(seedA, 0.001);
-      let i = Math.max(seedI, 0.001);
-
-      for (let k = 0; k < 140; k++) {
-        const f = hillResponse(a, i);
-        const nextA = params.ba * f / Math.max(params.la, EPS);
-        const nextI = params.bi * f / Math.max(params.li, EPS);
-        a = 0.72 * a + 0.28 * nextA;
-        i = 0.72 * i + 0.28 * nextI;
-      }
-      return { a, i };
-    }
-
     function computeHomogeneousSteadyState() {
-      const seeds = [
-        [0.2, 0.2],
-        [params.K, params.K],
-        [2 * params.K, 1.5 * params.K],
-        [params.ba / Math.max(params.la, 1), params.bi / Math.max(params.li, 1)],
-        [0.7 * params.ba / Math.max(params.la, 1), 0.7 * params.bi / Math.max(params.li, 1)],
-        [5, 5],
-        [8, 6],
-      ];
-
-      let best = { a: 0, i: 0 };
-      for (const [sa, si] of seeds) {
-        const cand = iterateHomogeneousState(sa, si);
-        if (Number.isFinite(cand.a) && Number.isFinite(cand.i) && cand.a >= 0 && cand.i >= 0) {
-          if (cand.a + cand.i > best.a + best.i) best = cand;
-        }
-      }
-
-      // If the only attractor found is essentially the null state, fall back to a
-      // nonzero background so the simulator does not start as an all-blue field.
-      if (best.a + best.i < 0.25) {
-        return {
-          a: Math.max(1.0, params.K, 0.45 * params.ba / Math.max(params.la, 0.5)),
-          i: Math.max(0.8, 0.45 * params.bi / Math.max(params.li, 0.5)),
-        };
-      }
-
-      return { a: Math.max(0.01, best.a), i: Math.max(0.01, best.i) };
+      return { a: 0, i: 0 };
     }
 
     function pickRandomDistinctIndices(count) {
@@ -1048,6 +1193,27 @@
       }
     }
 
+    function updateManualSeedCells(seedSet, clearedIndices = []) {
+      const seedValue = clamp(finiteNum(seedActivatorConc, 0), 0, 1e6);
+      for (let bufIdx = 0; bufIdx < 2; bufIdx++) {
+        const a = bufsA[bufIdx];
+        const iv = bufsI[bufIdx];
+        for (let j = 0; j < clearedIndices.length; j++) {
+          const idx = clearedIndices[j];
+          if (idx >= 0 && idx < N * N) {
+            a[idx] = steadyA;
+            iv[idx] = steadyI;
+          }
+        }
+        seedSet.forEach((idx) => {
+          if (idx >= 0 && idx < N * N) {
+            a[idx] = seedValue;
+          }
+        });
+      }
+      lastAppliedSeedIndices = Array.from(seedSet);
+    }
+
     // ── Grid init ──────────────────────────────────────────────────────────────
     function initGrid() {
       const a = bufsA[0], i = bufsI[0];
@@ -1056,10 +1222,8 @@
       steadyI = finiteNum(ss.i, 0.5);
 
       for (let k = 0; k < N * N; k++) {
-        const noiseA = (Math.random() - 0.5) * 0.12;
-        const noiseI = (Math.random() - 0.5) * 0.12;
-        a[k] = Math.max(0, finiteNum(steadyA * (1 + noiseA), 0));
-        i[k] = Math.max(0, finiteNum(steadyI * (1 + noiseI), 0));
+        a[k] = Math.max(0, finiteNum(steadyA, 0));
+        i[k] = Math.max(0, finiteNum(steadyI, 0));
       }
 
       let seedIdxList;
@@ -1075,88 +1239,39 @@
       curBuf = 0;
       simTime = 0;
       stepCount = 0;
-      invalidateDisplayScale();
-      bumpColormapInstantFrames(24);
       // Keep both buffers identical so the first post-init steps never read stale geometry.
       bufsA[1].set(bufsA[0]);
       bufsI[1].set(bufsI[0]);
     }
 
-    function getRobustRange(field, key) {
-      for (let t = 0; t < field.length; t++) {
-        if (!Number.isFinite(field[t])) field[t] = 0;
-      }
-      const values = Array.from(field).sort((x, y) => x - y);
-      let lo = percentile(values, 0.02);
-      let hi = percentile(values, 0.98);
-      lo = finiteNum(lo, 0);
-      hi = finiteNum(hi, lo + 1e-6);
+    function dominanceScore(activator, inhibitor) {
+      // Compare each species to its current production/degradation ceiling.
+      // This keeps the neutral point stable even though inhibitor concentrations
+      // are naturally much larger in this model.
+      const activatorCeiling = Math.max(params.ba / Math.max(params.la, EPS), params.K, EPS);
+      const inhibitorCeiling = Math.max(params.bi / Math.max(params.li, EPS), params.K, EPS);
+      const scaledActivator = Math.max(activator, 0) / activatorCeiling;
+      const scaledInhibitor = Math.max(inhibitor, 0) / inhibitorCeiling;
+      const activity = scaledActivator + scaledInhibitor;
+      if (activity <= EPS) return 0;
 
-      if (!(hi > lo)) {
-        lo = finiteNum(values[0], 0);
-        hi = finiteNum(values[values.length - 1], lo) + 1e-6;
-      }
-
-      const mid = (lo + hi) / 2;
-      const minSpan = Math.max(1e-4, Math.abs(mid) * 0.0005);
-      if (hi - lo < minSpan) {
-        lo = mid - minSpan / 2;
-        hi = mid + minSpan / 2;
-      }
-
-      const scale = displayScale[key];
-      const reset =
-        !Number.isFinite(scale.lo) ||
-        !Number.isFinite(scale.hi) ||
-        colormapInstantFrames > 0;
-      if (reset) {
-        scale.lo = lo;
-        scale.hi = hi;
-      } else {
-        const currentMid = (scale.lo + scale.hi) / 2;
-        const currentSpan = Math.max(scale.hi - scale.lo, 1e-6);
-        const targetSpan = Math.max(hi - lo, 1e-6);
-        const targetMovedOutside = hi < scale.lo || lo > scale.hi;
-        const centerShift = Math.abs(mid - currentMid);
-        const midPosition = (mid - scale.lo) / currentSpan;
-        const midNearEdge = midPosition < 0.25 || midPosition > 0.75;
-        const largeJump = centerShift > 1.5 * Math.max(currentSpan, targetSpan);
-
-        if (targetMovedOutside || midNearEdge || largeJump) {
-          scale.lo = lo;
-          scale.hi = hi;
-        } else {
-          const alpha = centerShift > 0.5 * Math.max(currentSpan, targetSpan) ? 0.35 : 0.08;
-          scale.lo = (1 - alpha) * scale.lo + alpha * lo;
-          scale.hi = (1 - alpha) * scale.hi + alpha * hi;
-        }
-      }
-
-      if (!(scale.hi > scale.lo + 1e-6)) {
-        scale.hi = scale.lo + 1e-6;
-      }
-      return scale;
+      const dominance = (scaledActivator - scaledInhibitor) / activity;
+      const visibility = Math.pow(clamp(activity / 0.08, 0, 1), 0.55);
+      return clamp(dominance * visibility, -1, 1);
     }
 
     // ── Draw ───────────────────────────────────────────────────────────────────
     function drawGrid() {
       const a = bufsA[curBuf], iv = bufsI[curBuf];
-      for (let idx = 0; idx < N * N; idx++) {
-        sumField[idx] = a[idx] + iv[idx];
-      }
-      const scale = getRobustRange(sumField, 'combined');
-      const rng = Math.max(scale.hi - scale.lo, 1e-9);
       const s = HEX_SIZE - 0.55;
 
       ctx.fillStyle = '#dde3e8';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-      if (colormapInstantFrames > 0) colormapInstantFrames -= 1;
-
       for (let idx = 0; idx < N * N; idx++) {
-        const sum = finiteNum(sumField[idx], 0);
-        const rawT = clamp((sum - scale.lo) / rng, 0, 1);
-        ctx.fillStyle = hexColor(rawT);
+        const activator = finiteNum(a[idx], 0);
+        const inhibitor = finiteNum(iv[idx], 0);
+        ctx.fillStyle = coolwarmColor(dominanceScore(activator, inhibitor));
         const cx = GRID_CX[idx], cy = GRID_CY[idx];
         ctx.beginPath();
         for (let k = 0; k < 6; k++) {
@@ -1202,10 +1317,10 @@
           sumI += iv[nbrs[j]];
         }
 
-        // Use average neighbor activator, matching the reference juxtacrine idea.
-        const signalA = sumA / nn;
+        const avgA = sumA / nn;
         const avgI = sumI / nn;
-        const f = hillResponse(signalA, iv[idx]);
+        const signalA = avgA;
+        const h = hillResponse(signalA, iv[idx]);
         const lapI = avgI - iv[idx];
 
         const ba = finiteNum(params.ba, 0);
@@ -1213,8 +1328,8 @@
         const la = Math.max(finiteNum(params.la, 0), EPS);
         const li = Math.max(finiteNum(params.li, 0), EPS);
         const di = Math.max(finiteNum(params.di, 0), 0);
-        let nextA = a[idx] + DT * (ba * f - la * a[idx]);
-        let nextI = iv[idx] + DT * (bi * f - li * iv[idx] + di * lapI);
+        let nextA = a[idx] + DT * (ba * h - la * a[idx]);
+        let nextI = iv[idx] + DT * (di * lapI + bi * h - li * iv[idx]);
         nextA = finiteNum(nextA, 0);
         nextI = finiteNum(nextI, 0);
         na[idx] = clamp(nextA, 0, 1e6);
@@ -1247,7 +1362,12 @@
       infoSteps.textContent = stepCount;
       infoState.textContent = running ? '▶ Running' : '⏸ Paused';
       infoState.classList.toggle('accent', running);
-      infoField.textContent = 'Total a + i';
+      infoField.textContent = 'Balance a vs i';
+    }
+
+    function syncOverlayState() {
+      const shouldShow = !running && simTime === 0 && seedMode !== 'manual';
+      startOverlay.style.display = shouldShow ? 'flex' : 'none';
     }
 
     function setRunningState(val) {
@@ -1261,6 +1381,7 @@
         runIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
         btnStep.disabled = false;
       }
+      syncOverlayState();
       syncSeedCursor();
       updateDisplays();
     }
@@ -1310,7 +1431,6 @@
       if (!paramDragResume) return;
       paramDragResume = false;
       if (!running) {
-        startOverlay.style.display = 'none';
         setRunningState(true);
         rafId = requestAnimationFrame(loop);
       }
@@ -1332,15 +1452,12 @@
     }
 
     function handleSeedControlInput() {
-      invalidateDisplayScale();
-      bumpColormapInstantFrames(12);
       drawGrid();
     }
 
     // ── Controls ───────────────────────────────────────────────────────────────
     function handlePlay() {
       if (running) return;
-      startOverlay.style.display = 'none';
       setRunningState(true);
       rafId = requestAnimationFrame(loop);
     }
@@ -1358,10 +1475,10 @@
 
     function handleStep() {
       if (running) return;
-      startOverlay.style.display = 'none';
       for (let k = 0; k < SUBSTEPS_PER_FRAME; k++) stepSim();
       drawGrid();
       updateDisplays();
+      syncOverlayState();
     }
 
     function handleReset() {
@@ -1371,13 +1488,57 @@
         initGrid();
         drawGrid();
         updateDisplays();
-        startOverlay.style.display = 'flex';
+        syncOverlayState();
       }, 40);
+    }
+
+    function safeConfigFileName(title) {
+      const cleaned = title
+        .trim()
+        .replace(/[^a-z0-9_-]+/gi, '-')
+        .replace(/^-+|-+$/g, '');
+      return cleaned || 'reaction-diffusion-config';
+    }
+
+    function saveConfiguration() {
+      const title = projectTitleInput.value.trim() || 'Untitled Reaction-Diffusion Simulation';
+      const config = {
+        format: 'reaction-diffusion-config',
+        version: 1,
+        title,
+        model: 'juxtacrine-activator-diffusive-inhibitor',
+        grid: {
+          size: N,
+          topology: 'hex-lattice',
+        },
+        parameters: { ...params },
+        seeding: {
+          mode: seedMode,
+          activatorConcentration: seedActivatorConc,
+          randomSeedCount,
+          manualSeedIndices: Array.from(manualSeedIndices).sort((a, b) => a - b),
+          appliedSeedIndices: lastAppliedSeedIndices.slice().sort((a, b) => a - b),
+        },
+      };
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${safeConfigFileName(title)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      btnSaveConfig.title = 'Configuration saved';
+      window.setTimeout(() => {
+        btnSaveConfig.title = 'Save configuration';
+      }, 1500);
     }
 
     btnRun.addEventListener('click', handlePlayPause);
     btnStep.addEventListener('click', handleStep);
+    btnSaveConfig.addEventListener('click', saveConfiguration);
     document.getElementById('btn-reset').addEventListener('click', handleReset);
+    btnRestartSimulation.addEventListener('click', handleReset);
     document.getElementById('btn-overlay-run').addEventListener('click', handlePlayPause);
 
     canvas.addEventListener('click', (ev) => {
@@ -1385,10 +1546,11 @@
       const { x, y } = canvasEventToPixel(ev);
       const idx = hitTestHexIndex(x, y);
       if (idx < 0) return;
+      const cleared = [];
       if (manualSeedIndices.has(idx)) manualSeedIndices.delete(idx);
       else manualSeedIndices.add(idx);
-      invalidateDisplayScale();
-      lastAppliedSeedIndices = Array.from(manualSeedIndices);
+      if (!manualSeedIndices.has(idx)) cleared.push(idx);
+      updateManualSeedCells(manualSeedIndices, cleared);
       drawGrid();
     });
 
@@ -1421,20 +1583,21 @@
         </div>
         <input type="range" class="slider" id="slider-${m.key}"
           min="${m.min}" max="${m.max}" step="${m.step}" value="${val}"
-          style="--pct:${pct}%"/>
+          style="--pct:${pct}%" aria-label="${m.label}"/>
       `;
           container.appendChild(item);
 
           const slider = item.querySelector('input');
           const valSpan = item.querySelector('.param-val');
           slider.addEventListener('pointerdown', onModelSliderPointerDown);
+          slider.addEventListener('pointerup', resumeAfterParamDrag);
+          slider.addEventListener('pointercancel', resumeAfterParamDrag);
           slider.addEventListener('input', () => {
             const v = parseFloat(slider.value);
             params[m.key] = v;
             valSpan.textContent = v.toFixed(m.dp);
             const p = ((v - m.min) / (m.max - m.min)) * 100;
             slider.style.setProperty('--pct', p + '%');
-            bumpColormapInstantFrames(8);
             drawGrid();
           });
           slider.addEventListener('change', handleModelParamCommit);
@@ -1450,10 +1613,15 @@
         return ((n - 1) / (40 - 1)) * 100;
       }
       sliderSeedConc.addEventListener('pointerdown', onModelSliderPointerDown);
+      sliderSeedConc.addEventListener('pointerup', resumeAfterParamDrag);
+      sliderSeedConc.addEventListener('pointercancel', resumeAfterParamDrag);
       sliderSeedConc.addEventListener('input', () => {
         seedActivatorConc = parseFloat(sliderSeedConc.value);
         valSeedConc.textContent = seedActivatorConc.toFixed(1);
         sliderSeedConc.style.setProperty('--pct', pctSeedConc(seedActivatorConc) + '%');
+        if (!running && seedMode === 'manual' && manualSeedIndices.size > 0) {
+          updateManualSeedCells(manualSeedIndices);
+        }
         handleSeedControlInput();
       });
       sliderSeedConc.addEventListener('change', handleSeedParamCommit);
@@ -1468,7 +1636,7 @@
         seedMode = mode;
         seedHint.textContent =
           mode === 'manual'
-            ? 'Manual: click hex cells while paused to toggle seeds. Concentration applies on reset and when seed controls are committed.'
+            ? 'Manual: click hex cells while paused to toggle seeds. Seed strength updates immediately while paused.'
             : 'Random: new seed positions on reset or when a slider commit restarts the run.';
         btnClearSeeds.disabled = mode === 'random';
         btnClearSeeds.title =
@@ -1476,10 +1644,10 @@
         if (mode === 'random') {
           restartFromCurrentSettings();
         } else {
-          lastAppliedSeedIndices = Array.from(manualSeedIndices);
-          invalidateDisplayScale();
+          updateManualSeedCells(manualSeedIndices, lastAppliedSeedIndices.slice());
           drawGrid();
         }
+        syncOverlayState();
         syncSeedCursor();
       }
       seedModeManual.addEventListener('change', () => {
@@ -1490,10 +1658,13 @@
       });
 
       btnClearSeeds.addEventListener('click', () => {
+        paramDragResume = false;
+        handlePause();
         manualSeedIndices.clear();
-        lastAppliedSeedIndices = [];
-        invalidateDisplayScale();
+        initGrid();
         drawGrid();
+        updateDisplays();
+        syncOverlayState();
       });
       btnRandomizeSeeds.addEventListener('click', () => {
         if (seedMode === 'manual') {
@@ -1513,6 +1684,8 @@
       });
 
       sliderRandCount.addEventListener('pointerdown', onModelSliderPointerDown);
+      sliderRandCount.addEventListener('pointerup', resumeAfterParamDrag);
+      sliderRandCount.addEventListener('pointercancel', resumeAfterParamDrag);
       sliderRandCount.addEventListener('change', handleSeedParamCommit);
 
       setMode(seedModeManual.checked ? 'manual' : 'random');
@@ -1525,6 +1698,7 @@
     wireSeedingUI();
     initGrid();
     requestAnimationFrame(drawGrid);
+    syncOverlayState();
     syncSeedCursor();
     updateDisplays();
   </script>

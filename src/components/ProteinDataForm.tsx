@@ -1,5 +1,5 @@
 import React, { Dispatch, SetStateAction, useEffect } from "react";
-import { ProteinData, EdgeData } from "../types";
+import { ProteinData } from "../types";
 import {
     Flex,
     TextField,
@@ -8,14 +8,13 @@ import {
     Slider,
     Callout,
 } from "@radix-ui/themes"
-import { CircleAlert } from "lucide-react";
-import { useAlert } from "./Alerts/AlertProvider";
+import { Info } from "lucide-react";
 
 interface ProteinDataProps {
     mode: 'edit' | 'create'
     proteinData: ProteinData | null,
     setProteinData: Dispatch<SetStateAction<ProteinData>>;
-    edges?: EdgeData[];
+    hasIncomingRegulation?: boolean;
     onValidityChange?: (isValid: boolean) => void;
     onNegativeFieldsChange?: (negativeFields: string[]) => void;
 }
@@ -24,32 +23,16 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
     mode,
     proteinData,
     setProteinData,
-    edges = [],
+    hasIncomingRegulation = false,
     onValidityChange,
     onNegativeFieldsChange,
 }: ProteinDataProps) => {
-    const { showAlert } = useAlert();
-
-    // Check if circuit uses inhibitors (has edges with markerEnd: "repress")
-    const circuitUsesInhibitors = edges.some(edge => {
-        const markerEnd = (edge as any)?.markerEnd;
-        return markerEnd === 'repress';
-    });
-    
-    // Check if current initial concentration is less than 1
-    const initialConcentration = typeof proteinData?.initialConcentration === 'number' 
-        ? proteinData.initialConcentration 
-        : undefined;
-    const showInhibitorWarning = circuitUsesInhibitors && 
-        initialConcentration !== undefined && 
-        initialConcentration < 1;
-
     if (!proteinData) return null;
 
     const proteinDataProps: { key: keyof ProteinData; label: string; min: number; max: number; step: number }[] = [
-        { key: 'initialConcentration', label: 'Initial Concentration', min: 0, max: 100, step: 1 },
-        { key: 'lossRate', label: 'Loss Rate', min: 0, max: 5, step: 0.1 },
-        { key: 'beta', label: 'Beta', min: 0, max: 10, step: 0.1 },
+        { key: 'initialConcentration', label: 'Initial Internal Concentration', min: 0, max: 100, step: 1 },
+        { key: 'lossRate', label: 'Degradation Rate (gamma)', min: 0, max: 5, step: 0.1 },
+        { key: 'beta', label: 'Max Production Rate (beta)', min: 0, max: 10, step: 0.1 },
     ];
 
     const pulseFunctionDataProps: { key: keyof ProteinData['inputFunctionData']; label: string; min: number; max: number; step: number }[] = [
@@ -75,10 +58,8 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
     // main numeric props
     proteinDataProps.forEach(({ key, label }) => checkNumber(proteinData[key], label));
 
-    // input function specific values
-    if (proteinData.inputFunctionType === 'steady-state') {
-        checkNumber(proteinData.inputFunctionData?.steadyStateValue, 'Steady State Value');
-    } else if (proteinData.inputFunctionType === 'pulse') {
+    checkNumber(proteinData.inputFunctionData?.steadyStateValue, 'Basal Concentration');
+    if (proteinData.inputFunctionType === 'pulse') {
         pulseFunctionDataProps.forEach(({ key, label }) => checkNumber(proteinData.inputFunctionData?.[key], label));
     }
 
@@ -108,9 +89,6 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
             // input function type required
             if (!proteinData?.inputFunctionType || String(proteinData.inputFunctionType).trim() === '') {
                 requiredMissing.push('inputFunctionType');
-            } else if (proteinData.inputFunctionType === 'steady-state') {
-                const v = proteinData.inputFunctionData?.steadyStateValue;
-                if (v === undefined || v === null || Number.isNaN(Number(v))) requiredMissing.push('steadyStateValue');
             } else if (proteinData.inputFunctionType === 'pulse') {
                 pulseFunctionDataProps.forEach(({ key }) => {
                     const v = proteinData.inputFunctionData?.[key];
@@ -120,6 +98,11 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                 });
             }
 
+            const basalValue = proteinData.inputFunctionData?.steadyStateValue;
+            if (basalValue === undefined || basalValue === null || Number.isNaN(Number(basalValue))) {
+                requiredMissing.push('steadyStateValue');
+            }
+
             const isValid = negativeFields.length === 0 && requiredMissing.length === 0;
             onValidityChange(isValid);
         }
@@ -127,49 +110,58 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
 
     const isFieldNegative = (label: string) => negativeFields.includes(label);
 
-    // Display the input function type fields based on user selected type
-    const renderInputFunctionTypeFields = () => {
-        if (proteinData.inputFunctionType === "steady-state") {
-            const numericValue = proteinData.inputFunctionData?.steadyStateValue ?? "";
-    
-            return (
-                <Flex direction="column" gap="2" key={'steadyStateValue'}>
-                    <Flex direction="row" justify="between" align="center">
-                        <Text as="div" weight="bold">Steady State Value</Text>
-                        <TextField.Root
-                            type="number"
-                            style={{ maxWidth: '100px', border: isFieldNegative('Steady State Value') ? '1px solid red' : undefined }}
-                            value={numericValue}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setProteinData({
-                                    ...proteinData,
-                                    inputFunctionData: {
-                                        ...proteinData.inputFunctionData,
-                                        steadyStateValue: val === "" ? undefined : parseFloat(val)
-                                    }
-                                });
-                            }}
-                        />
-                    </Flex>
-                    <Slider
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[typeof numericValue === "number" ? numericValue : 0]}
-                        onValueChange={(value) =>
+    const renderBasalConcentrationField = () => {
+        const numericValue = proteinData.inputFunctionData?.steadyStateValue ?? "";
+
+        return (
+            <Flex direction="column" gap="2" key="steadyStateValue">
+                <Flex direction="row" justify="between" align="center">
+                    <Text as="div" weight="bold">Basal Concentration</Text>
+                    <TextField.Root
+                        type="number"
+                        aria-label="Basal Concentration"
+                        style={{ maxWidth: '100px', border: isFieldNegative('Basal Concentration') ? '1px solid red' : undefined }}
+                        value={numericValue}
+                        onChange={(e) => {
+                            const val = e.target.value;
                             setProteinData({
                                 ...proteinData,
                                 inputFunctionData: {
                                     ...proteinData.inputFunctionData,
-                                    steadyStateValue: value[0]
+                                    steadyStateValue: val === "" ? undefined : parseFloat(val)
                                 }
-                            })
-                        }
+                            });
+                        }}
                     />
                 </Flex>
-            );
-        } else if (proteinData.inputFunctionType === "pulse") {
+                <Slider
+                    aria-label="Basal Concentration"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={[typeof numericValue === "number" ? numericValue : 0]}
+                    onValueChange={(value) =>
+                        setProteinData({
+                            ...proteinData,
+                            inputFunctionData: {
+                                ...proteinData.inputFunctionData,
+                                steadyStateValue: value[0]
+                            }
+                        })
+                    }
+                />
+                {hasIncomingRegulation && typeof numericValue === "number" && numericValue > 0 && (
+                    <Text size="1" color="gray">
+                        Under complete repression, this protein approaches {numericValue} rather than zero.
+                    </Text>
+                )}
+            </Flex>
+        );
+    };
+
+    // Display pulse fields only when a time-varying external input is enabled.
+    const renderInputFunctionTypeFields = () => {
+        if (proteinData.inputFunctionType === "pulse") {
             return pulseFunctionDataProps.map(({ key, label, min, max, step }) => {
                 const rawValue = proteinData.inputFunctionData?.[key];
                 const numericValue = typeof rawValue === 'number' && !isNaN(rawValue) ? rawValue : "";
@@ -195,6 +187,7 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                             />
                         </Flex>
                         <Slider
+                            aria-label={label}
                             min={min}
                             max={max}
                             step={step}
@@ -240,6 +233,13 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                     <Text as="div" weight="regular" color="gray">Editing: <Text weight="regular" color="gray" >{proteinData.label}</Text></Text>
                 </Flex>
             }
+
+            <Callout.Root color="blue" size="1">
+                <Callout.Icon><Info size={16} /></Callout.Icon>
+                <Callout.Text>
+                    dP/dt = gamma x basal + beta x regulation - gamma x P. Basal concentration is the lower equilibrium under complete repression. Hill inputs are normalized to a threshold of 1, so a repressor at 1 gives half-maximal, not complete, repression.
+                </Callout.Text>
+            </Callout.Root>
 
              {/* Num inputs/outputs */}
             {/* Parent will render validation errors; this component only highlights invalid fields */}
@@ -288,8 +288,6 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
             {proteinDataProps.map(({ key, label, min, max, step }) => {
                 const rawValue = proteinData[key];
                 const numericValue = typeof rawValue === 'number' && !isNaN(rawValue) ? rawValue : "";
-                const isInitialConcentration = key === 'initialConcentration';
-
                 return (
                     <Flex direction="column" gap="2" key={key}>
                         <Flex direction="row" justify="between" align="center">
@@ -301,13 +299,6 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     const numVal = val === "" ? undefined : parseFloat(val);
-                                    
-                                    // Show alert if setting initial concentration < 1 in circuit with inhibitors
-                                    if (isInitialConcentration && circuitUsesInhibitors && 
-                                        numVal !== undefined && numVal < 1) {
-                                        showAlert("Warning: This circuit uses inhibitors. Initial concentrations less than 1 may cause unexpected outputs.");
-                                    }
-                                    
                                     setProteinData({
                                         ...proteinData,
                                         [key]: numVal
@@ -316,42 +307,28 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                             />
                         </Flex>
                         <Slider
+                            aria-label={label}
                             min={min}
                             max={max}
                             step={step}
                             value={[typeof numericValue === "number" ? numericValue : 0]}
                             onValueChange={(value) => {
                                 const newValue = value[0];
-                                
-                                // Show alert if setting initial concentration < 1 in circuit with inhibitors
-                                if (isInitialConcentration && circuitUsesInhibitors && newValue < 1) {
-                                    showAlert("Warning: This circuit uses inhibitors. Initial concentrations less than 1 may cause simulation issues.");
-                                }
-                                
                                 setProteinData({
                                     ...proteinData,
                                     [key]: newValue
                                 });
                             }}
                         />
-                        {/* Show warning callout for initial concentration < 1 in circuits with inhibitors */}
-                        {isInitialConcentration && showInhibitorWarning && (
-                            <Callout.Root color="amber">
-                                <Callout.Icon>
-                                    <CircleAlert size={16} />
-                                </Callout.Icon>
-                                <Callout.Text>
-                                    This circuit uses inhibitors. Initial concentrations less than 1 may cause unexpected outputs. Consider using a value of 1 or greater.
-                                </Callout.Text>
-                            </Callout.Root>
-                        )}
                     </Flex>
                 );
             })}
 
-            {/* Input Function Type */}
+            {renderBasalConcentrationField()}
+
+            {/* External pulse input */}
             <Flex direction="column" gap="2">
-                <Text as="div" weight="bold">Input Function Type</Text>
+                <Text as="div" weight="bold">External Pulse</Text>
                 <SegmentedControl.Root
                     value={proteinData.inputFunctionType}
                     onValueChange={(val) =>
@@ -361,8 +338,8 @@ const ProteinDataForm: React.FC<ProteinDataProps> = ({
                         })
                     }
                 >
-                    <SegmentedControl.Item value="steady-state">Steady State</SegmentedControl.Item>
-                    <SegmentedControl.Item value="pulse">Pulse</SegmentedControl.Item>
+                    <SegmentedControl.Item value="steady-state">Off</SegmentedControl.Item>
+                    <SegmentedControl.Item value="pulse">On</SegmentedControl.Item>
                 </SegmentedControl.Root>
             </Flex>
 

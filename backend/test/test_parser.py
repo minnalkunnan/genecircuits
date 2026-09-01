@@ -4,7 +4,7 @@ import pytest
 import json
 from backend.parser import parse_circuit
 from backend.protein import Protein, Gate
-from backend.simulate import x_pulse, steady_state
+from backend.simulate import x_pulse
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "parser_test_data")
 
@@ -26,12 +26,13 @@ def test_parse_complex_circuit():
     protein_map = {p.mName: p for p in proteins}
 
     # 3. Check external concentration functions
-    assert protein_map["Orange"].mExtConcFunc == steady_state
+    assert protein_map["Orange"].mExtConcFunc is None
     assert protein_map["Strawberry"].mExtConcFunc == x_pulse
     assert protein_map["Banana"].mExtConcFunc == x_pulse
-    assert protein_map["Grape"].mExtConcFunc == steady_state
-    assert protein_map["TestAA"].mExtConcFunc == steady_state
-    assert protein_map["TestRR"].mExtConcFunc == steady_state
+    assert protein_map["Grape"].mExtConcFunc is None
+    assert protein_map["TestAA"].mExtConcFunc is None
+    assert protein_map["TestRR"].mExtConcFunc is None
+    assert protein_map["Grape"].mBasalConcentration == 50
 
     # 4. Check gates attached to Banana
     banana_gates = protein_map["Banana"].mGates

@@ -1,5 +1,5 @@
 /**
- * URL for public/turing-pattern.html next to the main circuit UI.
+ * URL for the reaction-diffusion simulator next to the main circuit UI.
  *
  * Electron Forge dev server loads the window at `http://localhost:PORT/main_window`
  * (no trailing slash). A relative href `turing-pattern.html` is resolved as if
