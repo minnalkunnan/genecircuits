@@ -34,6 +34,8 @@ import {
 } from '@radix-ui/themes'
 import {ApplyCircuitTemplateProps, CircuitTemplate, AppNode} from "./types";
 import { useCircuitContext, useSelectionStateContext, useHillCoefficientContext, useWindowStateContext } from "./hooks";
+import BrickBench from "./bench/BrickBench";
+import { SimulatorMode } from "./components/Ribbon/Ribbon";
 import hillCoefficientType from "./types/HillCoefficientType";
 
 
@@ -41,6 +43,7 @@ export default function CircuitBuilderFlow() {
     const reactFlowWrapper = useRef(null);
     const { screenToFlowPosition } = useReactFlow();
     const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 800px)').matches);
+    const [mode, setMode] = useState<SimulatorMode>("canvas");
 
     useEffect(() => {
         const media = window.matchMedia('(max-width: 800px)');
@@ -459,8 +462,7 @@ export default function CircuitBuilderFlow() {
             <PromoteMarker /> 
 
             {/* TOP MENU FUNCTION BUTTONS */}
-            <Ribbon
-            />
+            <Ribbon mode={mode} onModeChange={setMode} />
 
             {/* HILL COEFFICIENT MATRIX WINDOW */}
             <HillCoefficientMatrix 
@@ -471,7 +473,8 @@ export default function CircuitBuilderFlow() {
                 setHillCoefficients={setHillCoefficients}
             />
 
-            {/* TOOLBOX AND REACT FLOW */}
+            {mode === "bench" ? <BrickBench /> : (
+            /* TOOLBOX AND REACT FLOW */
             <div className="bottom-container">
                 <PanelGroup
                     key={isMobile ? 'mobile-layout' : 'desktop-layout'}
@@ -576,6 +579,7 @@ export default function CircuitBuilderFlow() {
                     </Panel>
                 </PanelGroup>
             </div>
+            )}
         </>
     );
 }

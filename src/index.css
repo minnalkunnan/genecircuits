@@ -59,8 +59,8 @@ body,
 
 .app-mode-switch {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: min(100%, 420px);
+  grid-template-columns: 1fr 1fr 1fr;
+  width: min(100%, 680px);
   padding: 3px;
   border: 1px solid #cbd8d2;
   border-radius: 9px;
@@ -73,13 +73,17 @@ body,
   justify-content: center;
   min-height: 30px;
   padding: 5px 16px;
+  border: none;
+  background: transparent;
   border-radius: 6px;
   color: #53645d;
+  font: inherit;
   font-size: 13px;
   font-weight: 650;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .app-mode-option:hover {
