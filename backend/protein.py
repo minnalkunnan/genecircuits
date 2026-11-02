@@ -1,13 +1,14 @@
 from . import reg
 
 class Protein:
-    def __init__(self, id, name, initConc, degrad, gates, extConcFunc = None, extConcFuncArgs = None, beta = 1, basal_concentration = 0):
+    def __init__(self, id, name, initConc, degrad, gates, extConcFunc = None, extConcFuncArgs = None, beta = 1, basal_concentration = 0, k = 1):
         self.mID = id
         self.mName = name
         self.mInternalConc = initConc
         self.mDegradation = degrad
         self.mBeta = beta
         self.mBasalConcentration = basal_concentration
+        self.mK = k if k and k > 0 else 1
         self.mGates = gates
         self.mExtConcFunc = extConcFunc
         self.mExtConcFuncArgs = extConcFuncArgs
@@ -67,58 +68,61 @@ class Protein:
             self.mDegradation == other.mDegradation and
             self.mBeta == other.mBeta and
             self.mBasalConcentration == other.mBasalConcentration and
+            self.mK == other.mK and
             self.mGates == other.mGates and
             self.mExtConcFunc == other.mExtConcFunc and
             self.mExtConcFuncArgs == other.mExtConcFuncArgs
         )
 
 class Gate:
-    def __init__(self, type, *, firstInput, secondInput = None, firstHill = 1, secondHill = 1):
+    def __init__(self, type, *, firstInput, secondInput = None, firstHill = 1, secondHill = 1, firstK = 1, secondK = 1):
         self.mType = type
         self.mFirstInput = firstInput
         self.mFirstHill = firstHill
         self.mSecondInput = secondInput
         self.mSecondHill = secondHill
+        self.mFirstK = firstK if firstK and firstK > 0 else 1
+        self.mSecondK = secondK if secondK and secondK > 0 else 1
         self.prodRate = 0.0
         self.regFuncLambda = self.getRegFunc() 
 
     def getRegFunc(self):
         # additive, use for independent promoters
         if self.mType == "act_hill":
-            return lambda p: reg.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill)
+            return lambda p: reg.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill, self.mFirstK)
         # multiplicative, use for combinatorial regulation
         elif self.mType == "act_hill_mult":
             return lambda p: (
-                reg.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill) *
-                reg.act_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill)
+                reg.act_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill, self.mFirstK) *
+                reg.act_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill, self.mSecondK)
             )
         elif self.mType == "rep_hill":
-            return lambda p: reg.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill)
+            return lambda p: reg.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill, self.mFirstK)
         elif self.mType == "rep_hill_mult":
             return lambda p: (
-                reg.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill) *
-                reg.rep_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill)
+                reg.rep_hill(p[self.mFirstInput].getConcentration(), self.mFirstHill, self.mFirstK) *
+                reg.rep_hill(p[self.mSecondInput].getConcentration(), self.mSecondHill, self.mSecondK)
             )
         elif self.mType == "aa_and":
-            return lambda p: reg.aa_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.aa_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "aa_or":
-            return lambda p: reg.aa_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.aa_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "aa_or_single":
-            return lambda p: reg.aa_or_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.aa_or_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "rr_and":
-            return lambda p: reg.rr_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.rr_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "rr_or":
-            return lambda p: reg.rr_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.rr_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "rr_and_single":
-            return lambda p: reg.rr_and_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.rr_and_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "ar_and":
-            return lambda p: reg.ar_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.ar_and(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "ar_or":
-            return lambda p: reg.ar_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.ar_or(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "ar_and_single":
-            return lambda p: reg.ar_and_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.ar_and_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         elif self.mType == "ar_or_single":
-            return lambda p: reg.ar_or_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill)
+            return lambda p: reg.ar_or_single(p[self.mFirstInput].getConcentration(), p[self.mSecondInput].getConcentration(), self.mFirstHill, self.mSecondHill, self.mFirstK, self.mSecondK)
         else:
             raise ValueError(f"Unknown regulatory function type: {self.mType}")
         
@@ -132,5 +136,7 @@ class Gate:
             self.mFirstInput == other.mFirstInput and
             self.mSecondInput == other.mSecondInput and 
             self.mFirstHill == other.mFirstHill and
-            self.mSecondHill == other.mSecondHill
+            self.mSecondHill == other.mSecondHill and
+            self.mFirstK == other.mFirstK and
+            self.mSecondK == other.mSecondK
         )

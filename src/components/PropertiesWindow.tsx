@@ -8,13 +8,15 @@ import {
     DataList,
     Code,
     IconButton,
-    SegmentedControl
+    SegmentedControl,
+    TextField,
+    Slider
 } from "@radix-ui/themes"
 import {
     Trash2,
     Copy
 } from "lucide-react"
-import { useCircuitContext, useSelectionStateContext, useWindowStateContext } from '../hooks';
+import { useCircuitContext, useHillCoefficientContext, useSelectionStateContext, useWindowStateContext } from '../hooks';
 
 const LABEL_MAP: Record<'protein' | 'edge', Record<string, string>> = {
     protein: {
@@ -54,6 +56,7 @@ const PropertiesWindow: React.FC = () => {
         resetSelectedStateData
     } = useSelectionStateContext();
     const { setActiveTab } = useWindowStateContext();
+    const { hillCoefficients, setHillCoefficients } = useHillCoefficientContext();
     const edgeData = edges.find(edge => edge.id === selectedEdgeId) ?? null;
     const proteinData = (() => {
         if (!selectedNodeId) return null;
@@ -95,6 +98,65 @@ const PropertiesWindow: React.FC = () => {
         }
     }, [editingProtein]);
     
+    const commitProtein = (next: ProteinData) => {
+        setLocalProteinData(next);
+        if (!next?.label) return;
+        const rates = [next.initialConcentration, next.lossRate, next.beta];
+        if (rates.some((value) => typeof value !== "number" || Number.isNaN(value) || value < 0)) return;
+        setProteinData(next.label, next);
+        setNodes((prevNodes) =>
+            prevNodes.map((node) =>
+                node.type === "custom" && node.data?.label === next.label
+                    ? { ...node, data: { ...next } }
+                    : node
+            )
+        );
+    };
+
+    const proteinLabel = (nodeId: string) => {
+        const node = nodes.find((item) => item.id === nodeId);
+        if (!node || node.type !== "custom") return null;
+        return typeof node.data?.label === "string" ? node.data.label : null;
+    };
+
+    const hillRows = (label: string) => {
+        const rows: { id: string; text: string }[] = [];
+        const seen = new Set<string>();
+        const add = (source: string, target: string) => {
+            if (source !== label && target !== label) return;
+            const id = `${source}-${target}`;
+            if (seen.has(id)) return;
+            seen.add(id);
+            rows.push({ id, text: `${source} → ${target}` });
+        };
+        edges.forEach((edge) => {
+            const source = proteinLabel(edge.source);
+            const target = proteinLabel(edge.target);
+            if (source && target) {
+                add(source, target);
+                return;
+            }
+            if (!source) return;
+            edges
+                .filter((out) => out.source === edge.target)
+                .forEach((out) => {
+                    const dest = proteinLabel(out.target);
+                    if (dest) add(source, dest);
+                });
+        });
+        return rows;
+    };
+
+    const setHillValue = (id: string, value: number) => {
+        setHillCoefficients((prev) => {
+            const index = prev.findIndex((entry) => entry.id === id);
+            if (index === -1) return [...prev, { id, value }];
+            const updated = [...prev];
+            updated[index] = { ...updated[index], value };
+            return updated;
+        });
+    };
+
     // Called when user submits the updated protein data
     const handleUpdate = () => {
         if (!isFormValid) return; // prevent update when form invalid
@@ -235,10 +297,43 @@ const PropertiesWindow: React.FC = () => {
             <ProteinDataForm
                 mode="edit"
                 proteinData={localProteinData}
-                setProteinData={setLocalProteinData}
+                setProteinData={commitProtein}
                 hasIncomingRegulation={localProteinData ? hasIncomingRegulation(localProteinData.label) : false}
                 onValidityChange={setIsFormValid}
             />
+            {localProteinData && hillRows(localProteinData.label).length > 0 && (
+                <Flex direction="column" gap="3">
+                    <Text weight="bold">Hill coefficients</Text>
+                    {hillRows(localProteinData.label).map((row) => {
+                        const current = hillCoefficients.find((entry) => entry.id === row.id)?.value ?? 1;
+                        return (
+                            <Flex key={row.id} direction="column" gap="2">
+                                <Flex justify="between" align="center">
+                                    <Text size="2">{row.text}</Text>
+                                    <TextField.Root
+                                        type="number"
+                                        aria-label={`Hill coefficient ${row.text}`}
+                                        style={{ maxWidth: "100px" }}
+                                        value={current}
+                                        onChange={(event) => {
+                                            const next = parseFloat(event.target.value);
+                                            if (!Number.isNaN(next)) setHillValue(row.id, next);
+                                        }}
+                                    />
+                                </Flex>
+                                <Slider
+                                    aria-label={`Hill coefficient ${row.text}`}
+                                    min={1}
+                                    max={8}
+                                    step={1}
+                                    value={[Math.min(8, Math.max(1, Math.round(current)))]}
+                                    onValueChange={(value) => setHillValue(row.id, value[0])}
+                                />
+                            </Flex>
+                        );
+                    })}
+                </Flex>
+            )}
             <Flex className="protein-editor-actions" gap="3" justify="between" wrap="wrap">
                 {selectedNodeId && (
                     <Button variant="outline" color="red" onClick={handleDelete}>

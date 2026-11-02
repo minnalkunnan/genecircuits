@@ -13,7 +13,6 @@ import './index.css';
 import { RepressMarker, PromoteMarker } from "./assets";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { syncNodeCounters } from "./utils";
-import HillCoefficientData from "./types/HillCoefficientType";
 import ProteinData from "./types/ProteinData";
 import {
     Toolbox, 
@@ -34,6 +33,8 @@ import {
 } from '@radix-ui/themes'
 import {ApplyCircuitTemplateProps, CircuitTemplate, AppNode} from "./types";
 import { useCircuitContext, useSelectionStateContext, useHillCoefficientContext, useWindowStateContext } from "./hooks";
+import BrickBench from "./bench/BrickBench";
+import { SimulatorMode } from "./components/Ribbon/Ribbon";
 import hillCoefficientType from "./types/HillCoefficientType";
 
 
@@ -41,6 +42,10 @@ export default function CircuitBuilderFlow() {
     const reactFlowWrapper = useRef(null);
     const { screenToFlowPosition } = useReactFlow();
     const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 800px)').matches);
+    const [mode, setMode] = useState<SimulatorMode>(() => {
+        const requested = new URLSearchParams(window.location.search).get("mode");
+        return requested === "canvas" ? "canvas" : "bench";
+    });
 
     useEffect(() => {
         const media = window.matchMedia('(max-width: 800px)');
@@ -253,27 +258,6 @@ export default function CircuitBuilderFlow() {
             setNodes((nds: AppNode[]) => [...nds, newNode]);
         }, [screenToFlowPosition, setNodes, setProteinData, getId, usedProteins, setUsedProteins]);
 
-    // Initializes the hillCoefficients array values when new usedProteins list is updated
-    useEffect(() => {
-        const updated: HillCoefficientData[] = [];
-
-        const labels = Array.from(usedProteins).sort();
-
-        labels.forEach((source) => {
-            labels.forEach((target) => {
-            const id = `${source}-${target}`;
-            const alreadyExists = hillCoefficients.some((h: HillCoefficientData) => h.id === id);
-            if (!alreadyExists) {
-                updated.push({ id, value: 1 }); // default value
-            }
-            });
-        });
-
-        if (updated.length > 0) {
-            setHillCoefficients(prev => [...prev, ...updated]);
-        }
-    }, [usedProteins]);
-
     const applyCircuitTemplate = ({
         template,
         proteins,
@@ -459,8 +443,7 @@ export default function CircuitBuilderFlow() {
             <PromoteMarker /> 
 
             {/* TOP MENU FUNCTION BUTTONS */}
-            <Ribbon
-            />
+            <Ribbon mode={mode} onModeChange={setMode} />
 
             {/* HILL COEFFICIENT MATRIX WINDOW */}
             <HillCoefficientMatrix 
@@ -471,7 +454,8 @@ export default function CircuitBuilderFlow() {
                 setHillCoefficients={setHillCoefficients}
             />
 
-            {/* TOOLBOX AND REACT FLOW */}
+            {mode === "bench" ? <BrickBench /> : (
+            /* TOOLBOX AND REACT FLOW */
             <div className="bottom-container">
                 <PanelGroup
                     key={isMobile ? 'mobile-layout' : 'desktop-layout'}
@@ -576,6 +560,7 @@ export default function CircuitBuilderFlow() {
                     </Panel>
                 </PanelGroup>
             </div>
+            )}
         </>
     );
 }

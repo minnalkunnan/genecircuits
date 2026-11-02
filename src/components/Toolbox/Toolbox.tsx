@@ -114,7 +114,7 @@ export const Toolbox: React.FC = () => {
                     aria-label="Add AND node to canvas"
                     title="Tap to add or drag onto the canvas"
                     onClick={() => addNodeToCanvas('and')}
-                    onKeyDown={(event) => addOnKeyboard(event, 'and')}
+                    onKeyDown={(event: React.KeyboardEvent) => addOnKeyboard(event, 'and')}
                     onDragStart={(e: React.DragEvent) => onDragStart(e, 'and')}
                 >
                     <Flex align="center" gap="4">
@@ -129,7 +129,7 @@ export const Toolbox: React.FC = () => {
                     aria-label="Add OR node to canvas"
                     title="Tap to add or drag onto the canvas"
                     onClick={() => addNodeToCanvas('or')}
-                    onKeyDown={(event) => addOnKeyboard(event, 'or')}
+                    onKeyDown={(event: React.KeyboardEvent) => addOnKeyboard(event, 'or')}
                     onDragStart={(e: React.DragEvent) => onDragStart(e, 'or')}
                 >
                     <Flex align="center" gap="4">

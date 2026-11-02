@@ -16,5 +16,7 @@ export function turingPatternSimulatorHref(): string {
     url.pathname += "/";
   }
 
-  return new URL("turing-pattern.html", url.href).href;
+  const target = new URL("turing-pattern.html", url.href);
+  target.searchParams.set("return", window.location.href);
+  return target.href;
 }
