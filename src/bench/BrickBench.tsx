@@ -7,6 +7,7 @@ import {
     BH,
     canAppend,
     Construct,
+    secondOperatorRefusal,
     construct,
     FPS,
     LC,
@@ -94,6 +95,7 @@ export default function BrickBench() {
     const [gain, setGain] = useState(1.4);
     const [sim, setSim] = useState<SimSeries | null>(null);
     const [simError, setSimError] = useState<string | null>(null);
+    const [ruleNote, setRuleNote] = useState<string | null>(null);
     const raf = useRef<number | null>(null);
     const dragRef = useRef<{ part: PartDraft; sx: number; sy: number; moved: boolean } | null>(null);
 
@@ -206,6 +208,7 @@ export default function BrickBench() {
         setT(preset.T);
         setKey(k);
         setSelId(null);
+        setRuleNote(null);
         setFrac(0);
         setPlaying(true);
         setChannel("merge");
@@ -220,8 +223,20 @@ export default function BrickBench() {
         setSelId(id);
     };
 
+    const refuseSecondOperator = useCallback((parts: Part[], part: PartDraft) => {
+        const reason = secondOperatorRefusal(parts, part.t);
+        if (!reason) return false;
+        setRuleNote(reason);
+        return true;
+    }, []);
     const appendTo = useCallback((cid: number, part: PartDraft) => {
-        setCons((cs) => cs.map((c) => (c.id === cid && canAppend(c.parts, part.t) ? { ...c, parts: [...c.parts, { ...part, id: nid() } as Part] } : c)));
+        setCons((cs) => cs.map((c) => {
+            if (c.id !== cid) return c;
+            if (secondOperatorRefusal(c.parts, part.t)) return c;
+            if (!canAppend(c.parts, part.t)) return c;
+            return { ...c, parts: [...c.parts, { ...part, id: nid() } as Part] };
+        }));
+        setRuleNote(null);
     }, []);
     const newWith = useCallback((part: PartDraft) => {
         if (!startsOK(part.t)) return false;
@@ -234,14 +249,17 @@ export default function BrickBench() {
     }, []);
     const dropNew = useCallback((part: PartDraft) => {
         const d = cons.find((c) => c.id === draftId);
+        if (d && refuseSecondOperator(d.parts, part)) return;
         if (d && canAppend(d.parts, part.t)) { appendTo(d.id, part); setSelId(d.id); }
         else newWith(part);
-    }, [cons, draftId, appendTo, newWith]);
+    }, [cons, draftId, appendTo, newWith, refuseSecondOperator]);
     const tapPart = (part: PartDraft) => {
         const target = cons.find((c) => c.id === selId);
+        if (target && refuseSecondOperator(target.parts, part)) return;
         if (target && canAppend(target.parts, part.t)) appendTo(target.id, part);
         else if (!newWith(part)) {
             const fit = cons.find((c) => canAppend(c.parts, part.t));
+            if (fit && refuseSecondOperator(fit.parts, part)) return;
             if (fit) { appendTo(fit.id, part); setSelId(fit.id); }
         }
     };
@@ -276,7 +294,12 @@ export default function BrickBench() {
             if (!zone) return;
             const cid = zone.getAttribute("data-drop");
             if (cid === "new") dropNew(d.part);
-            else if (cid) { appendTo(Number(cid), d.part); setSelId(Number(cid)); }
+            else if (cid) {
+                const target = cons.find((c) => c.id === Number(cid));
+                if (target && refuseSecondOperator(target.parts, d.part)) { setSelId(target.id); return; }
+                appendTo(Number(cid), d.part);
+                setSelId(Number(cid));
+            }
         };
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", up);
@@ -284,7 +307,7 @@ export default function BrickBench() {
             window.removeEventListener("pointermove", move);
             window.removeEventListener("pointerup", up);
         };
-    }, [drag, cons, selId, draftId, appendTo, newWith, dropNew]);
+    }, [drag, cons, selId, draftId, appendTo, newWith, dropNew, refuseSecondOperator]);
 
     const patch = (id: number, partial: Partial<Construct>) => setCons((cs) => cs.map((z) => z.id === id ? { ...z, ...partial } : z));
 
@@ -338,6 +361,9 @@ export default function BrickBench() {
                         </div>
                     ))}
                     <div style={{ flexBasis: "100%", fontSize: 11, color: MUT }}>drag onto a gene, or tap to add</div>
+                    {ruleNote && (
+                        <div role="status" style={{ flexBasis: "100%", fontSize: 12.5, color: AMBER, lineHeight: 1.4 }}>{ruleNote}</div>
+                    )}
                 </aside>
 
                 <div style={{ marginBottom: 14 }}>

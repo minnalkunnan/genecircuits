@@ -110,16 +110,24 @@ export function brickSpec(part: PartDraft): BrickSpec {
 
 export const startsOK = (t: PartType): boolean => t === "op" || t === "prom";
 export const follows: Record<PartType, PartType[]> = {
-    op: ["op", "prom"],
+    op: ["prom"],
     prom: ["dbd", "fp"],
     dbd: ["dom"],
     dom: [],
     fp: [],
 };
 
+export const ONE_OPERATOR = "A construct can only have one operator. Start a new construct for another operator.";
+
 export function canAppend(parts: Part[], t: PartType): boolean {
     if (parts.length === 0) return startsOK(t);
     return follows[parts[parts.length - 1].t].includes(t);
+}
+
+export function secondOperatorRefusal(parts: Part[], t: PartType): string | null {
+    if (t !== "op" || canAppend(parts, t)) return null;
+    if (!parts.some((part) => part.t === "op")) return null;
+    return ONE_OPERATOR;
 }
 
 export function readConstruct(parts: Part[]): ConstructView {
