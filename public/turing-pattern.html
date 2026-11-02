@@ -900,7 +900,6 @@
         <a class="app-mode-option" id="link-bench" href="/?mode=bench">Brick Bench</a>
         <span class="app-mode-option active" aria-current="page">Reaction-Diffusion</span>
       </div>
-      <a class="legacy-toggle" id="link-legacy" href="/?mode=canvas">Legacy builder</a>
     </nav>
 
     <!-- ── Body ── -->
@@ -1210,10 +1209,8 @@
     }
 
     const benchLink = document.getElementById("link-bench");
-    const legacyLink = document.getElementById("link-legacy");
     const homeLink = document.getElementById("link-home");
     if (benchLink) benchLink.href = appHref("bench");
-    if (legacyLink) legacyLink.href = appHref("canvas");
     if (homeLink) homeLink.href = appHref("bench");
     window.addEventListener("resize", fitCanvas);
     requestAnimationFrame(fitCanvas);

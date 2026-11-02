@@ -311,14 +311,6 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                         Reaction-Diffusion
                     </a>
                 </div>
-                <button
-                    type="button"
-                    className={mode === "canvas" ? "legacy-toggle active" : "legacy-toggle"}
-                    aria-pressed={mode === "canvas"}
-                    onClick={() => onModeChange?.(mode === "canvas" ? "bench" : "canvas")}
-                >
-                    Legacy builder
-                </button>
             </nav>
 
 
