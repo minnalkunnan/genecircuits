@@ -78,6 +78,8 @@ const palette: { head: string; items: PartDraft[] }[] = [
     { head: "Fluorophores", items: FPS.map((f) => ({ t: "fp", ...f })) },
 ];
 
+const SIM_THROTTLE_MS = 100;
+
 export default function BrickBench() {
     const [key, setKey] = useState("repressilator");
     const [cons, setCons] = useState<Construct[]>(() => PRESETS.repressilator.make());
@@ -141,15 +143,15 @@ export default function BrickBench() {
     }, [channels, channel]);
     const shown = channel === "merge" ? channels : channels.filter((c) => c.name === channel);
 
-    useEffect(() => {
-        let cancelled = false;
-        if (!payload.nodes.length) {
-            setSim(null);
-            setSimError(null);
-            return;
-        }
-        runSimulation(payload).then((res) => {
-            if (cancelled) return;
+    // Throttled (leading + trailing) so dragging a slider doesn't flood the backend.
+    // The previous trace stays on screen until a newer response arrives.
+    const lastSent = useRef(0);
+    const reqId = useRef(0);
+    const runSim = useCallback((p: ReturnType<typeof compileCircuit>) => {
+        const id = ++reqId.current;
+        lastSent.current = Date.now();
+        runSimulation(p).then((res) => {
+            if (id !== reqId.current) return; // a newer request superseded this one
             if (!res?.ok || !res.data) {
                 setSim(null);
                 setSimError(res?.error || res?.message || "Simulation did not return a curve.");
@@ -162,13 +164,22 @@ export default function BrickBench() {
                 values: res.data.concentrations,
             });
         }).catch((err: Error) => {
-            if (!cancelled) {
-                setSim(null);
-                setSimError(err.message || "Could not reach the simulator.");
-            }
+            if (id !== reqId.current) return;
+            setSim(null);
+            setSimError(err.message || "Could not reach the simulator.");
         });
-        return () => { cancelled = true; };
-    }, [payload]);
+    }, []);
+    useEffect(() => {
+        if (!payload.nodes.length) {
+            reqId.current++;
+            setSim(null);
+            setSimError(null);
+            return;
+        }
+        const wait = Math.max(0, SIM_THROTTLE_MS - (Date.now() - lastSent.current));
+        const timer = setTimeout(() => runSim(payload), wait);
+        return () => clearTimeout(timer);
+    }, [payload, runSim]);
 
     useEffect(() => {
         if (!playing) {
