@@ -223,7 +223,9 @@
 
     .app-mode-bar {
       display: flex;
+      align-items: center;
       justify-content: center;
+      gap: 10px;
       padding: 6px 12px;
       background: #f3f7f5;
       border-bottom: 1px solid #d9e2de;
@@ -264,6 +266,30 @@
       color: #174f3f;
       background: #fff;
       box-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
+    }
+
+    .app-mode-bar {
+      gap: 10px;
+    }
+
+    .legacy-toggle {
+      border: 1px solid #cbd8d2;
+      background: transparent;
+      color: #53645d;
+      border-radius: 9px;
+      min-height: 36px;
+      padding: 5px 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .legacy-toggle:hover {
+      color: #174f3f;
+      background: #fff;
     }
 
     .body {
@@ -556,7 +582,6 @@
     #sim-canvas {
       display: block;
       max-width: 100%;
-      max-height: calc(100vh - 112px);
     }
 
     #start-overlay {
@@ -565,9 +590,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(247, 249, 251, 0.85);
-      backdrop-filter: blur(4px);
+      background: transparent;
+      pointer-events: none;
       z-index: 10;
+    }
+
+    #start-overlay .overlay-card,
+    #start-overlay .run-btn {
+      pointer-events: auto;
     }
 
     .overlay-card {
@@ -815,7 +845,7 @@
     <!-- ── Header ── -->
     <header>
       <div class="h-left">
-        <a class="logo-home" href="index.html" title="Back to circuit builder" aria-label="Back to circuit builder">
+        <a class="logo-home" id="link-home" href="/?mode=bench" title="Back to Brick Bench" aria-label="Back to Brick Bench">
           <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
             <polygon points="14,2 24,7.5 24,20.5 14,26 4,20.5 4,7.5" fill="none" stroke="#3ca683" stroke-width="2.2" />
             <polygon points="14,8 19.5,11.2 19.5,17.8 14,21 8.5,17.8 8.5,11.2" fill="#3ca683" opacity="0.25" />
@@ -867,9 +897,10 @@
 
     <nav class="app-mode-bar" aria-label="Choose simulator">
       <div class="app-mode-switch">
-        <a class="app-mode-option" href="index.html">Gene Circuit Builder</a>
+        <a class="app-mode-option" id="link-bench" href="/?mode=bench">Brick Bench</a>
         <span class="app-mode-option active" aria-current="page">Reaction-Diffusion</span>
       </div>
+      <a class="legacy-toggle" id="link-legacy" href="/?mode=canvas">Legacy builder</a>
     </nav>
 
     <!-- ── Body ── -->
@@ -1152,6 +1183,40 @@
 
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
+
+    function fitCanvas() {
+      const mainEl = canvas.closest("main");
+      if (!mainEl) return;
+      const availW = Math.max(mainEl.clientWidth - 28, 160);
+      const availH = Math.max(mainEl.clientHeight - 28, 160);
+      const scale = Math.min(1, availW / CANVAS_W, availH / CANVAS_H);
+      canvas.style.width = Math.max(1, Math.floor(CANVAS_W * scale)) + "px";
+      canvas.style.height = Math.max(1, Math.floor(CANVAS_H * scale)) + "px";
+    }
+
+    function appHref(mode) {
+      const here = new URL(window.location.href);
+      const ret = here.searchParams.get("return");
+      let url;
+      if (ret) {
+        try { url = new URL(ret); } catch (e) { url = new URL("/", here); }
+      } else {
+        url = new URL(here.href);
+        url.pathname = url.pathname.replace(/[^/]*$/, "");
+      }
+      url.searchParams.set("mode", mode);
+      url.hash = "";
+      return url.href;
+    }
+
+    const benchLink = document.getElementById("link-bench");
+    const legacyLink = document.getElementById("link-legacy");
+    const homeLink = document.getElementById("link-home");
+    if (benchLink) benchLink.href = appHref("bench");
+    if (legacyLink) legacyLink.href = appHref("canvas");
+    if (homeLink) homeLink.href = appHref("bench");
+    window.addEventListener("resize", fitCanvas);
+    requestAnimationFrame(fitCanvas);
 
     // ── Model ──────────────────────────────────────────────────────────────────
     // Align with the reference juxtacrine example:

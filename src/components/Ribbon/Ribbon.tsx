@@ -301,14 +301,6 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                 <div className="app-mode-switch">
                     <button
                         type="button"
-                        className={mode === "canvas" ? "app-mode-option active" : "app-mode-option"}
-                        aria-current={mode === "canvas" ? "page" : undefined}
-                        onClick={() => onModeChange?.("canvas")}
-                    >
-                        Gene Circuit Builder
-                    </button>
-                    <button
-                        type="button"
                         className={mode === "bench" ? "app-mode-option active" : "app-mode-option"}
                         aria-current={mode === "bench" ? "page" : undefined}
                         onClick={() => onModeChange?.("bench")}
@@ -319,6 +311,14 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                         Reaction-Diffusion
                     </a>
                 </div>
+                <button
+                    type="button"
+                    className={mode === "canvas" ? "legacy-toggle active" : "legacy-toggle"}
+                    aria-pressed={mode === "canvas"}
+                    onClick={() => onModeChange?.(mode === "canvas" ? "bench" : "canvas")}
+                >
+                    Legacy builder
+                </button>
             </nav>
 
 

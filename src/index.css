@@ -50,7 +50,9 @@ body,
 
 .app-mode-bar {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
   padding: 6px 12px;
   background: #f3f7f5;
   border-bottom: 1px solid #d9e2de;
@@ -59,8 +61,8 @@ body,
 
 .app-mode-switch {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: min(100%, 680px);
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 460px);
   padding: 3px;
   border: 1px solid #cbd8d2;
   border-radius: 9px;
@@ -92,6 +94,29 @@ body,
 }
 
 .app-mode-option.active {
+  color: #174f3f;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
+}
+
+.legacy-toggle {
+  border: 1px solid #cbd8d2;
+  background: transparent;
+  color: #53645d;
+  border-radius: 9px;
+  min-height: 36px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.legacy-toggle:hover,
+.legacy-toggle.active {
   color: #174f3f;
   background: #fff;
   box-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
