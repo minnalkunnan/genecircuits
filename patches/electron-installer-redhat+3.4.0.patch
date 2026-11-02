@@ -1,13 +1,16 @@
 diff --git a/node_modules/electron-installer-redhat/resources/spec.ejs b/node_modules/electron-installer-redhat/resources/spec.ejs
-index e07a8a3..5c40704 100644
+index e07a8a3..3e4f5e0 100644
 --- a/node_modules/electron-installer-redhat/resources/spec.ejs
 +++ b/node_modules/electron-installer-redhat/resources/spec.ejs
-@@ -24,7 +24,7 @@ print('\n\n\n') }
+@@ -24,7 +24,10 @@ print('\n\n\n') }
  
  %>%install
  mkdir -p %{buildroot}/usr/
 -cp <%= process.platform === 'darwin' ? '-R' : '-r' %> usr/* %{buildroot}/usr/
-+cp <%= process.platform === 'darwin' ? '-R' : '-r' %> %{_builddir}/usr/* %{buildroot}/usr/
++# Newer rpmbuild starts this script in an empty per-build subdirectory, so the
++# staged files are one level up. Older versions start in the directory with them.
++if [ -d usr ]; then SRC=usr; else SRC=../usr; fi
++cp <%= process.platform === 'darwin' ? '-R' : '-r' %> "$SRC"/* %{buildroot}/usr/
  
  
  %files
