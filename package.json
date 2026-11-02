@@ -9,7 +9,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "postinstall": "patch-package",
+    "postinstall": "node scripts/apply-patches.js",
     "lint": "eslint --ext .ts,.tsx .",
     "lint:changed": "eslint --ext .ts,.tsx backend/src/pythonClient.ts backend/src/server.ts backend/src/index.ts",
     "test": "jest",
