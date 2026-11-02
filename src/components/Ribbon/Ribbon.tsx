@@ -32,7 +32,9 @@ import { ImportWindow } from "../../components";
 import { useAlert } from "../Alerts/AlertProvider";
 import { ProjectDataType } from "../../types";
 
-const TopRibbon: React.FC = () => {
+export type SimulatorMode = "canvas" | "bench";
+
+const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: SimulatorMode) => void }> = ({ mode = "canvas", onModeChange }) => {
     const {
         nodes, setNodes, edges, setEdges, proteins
     } = useCircuitContext();
@@ -297,13 +299,26 @@ const TopRibbon: React.FC = () => {
 
             <nav className="app-mode-bar" aria-label="Choose simulator">
                 <div className="app-mode-switch">
-                    <span className="app-mode-option active" aria-current="page">
-                        Gene Circuit Builder
-                    </span>
+                    <button
+                        type="button"
+                        className={mode === "bench" ? "app-mode-option active" : "app-mode-option"}
+                        aria-current={mode === "bench" ? "page" : undefined}
+                        onClick={() => onModeChange?.("bench")}
+                    >
+                        Brick Bench
+                    </button>
                     <a className="app-mode-option" href={turingPatternSimulatorHref()}>
                         Reaction-Diffusion
                     </a>
                 </div>
+                <button
+                    type="button"
+                    className={mode === "canvas" ? "legacy-toggle active" : "legacy-toggle"}
+                    aria-pressed={mode === "canvas"}
+                    onClick={() => onModeChange?.(mode === "canvas" ? "bench" : "canvas")}
+                >
+                    Legacy builder
+                </button>
             </nav>
 
 

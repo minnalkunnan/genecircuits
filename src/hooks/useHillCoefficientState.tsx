@@ -14,20 +14,21 @@ function useHillCoefficientState(usedProteins: Set<string>) {
 
   useEffect(() => {
     const labels = Array.from(usedProteins).sort();
-  
-    // Build a map to retain old values if available
-    const prevMap = new Map(hillCoefficients.map(h => [h.id, h.value]));
-  
-    const freshMatrix: HillCoefficientData[] = [];
-    for (const source of labels) {
-      for (const target of labels) {
-        const id = `${source}-${target}`;
-        const value = prevMap.get(id) ?? 1;
-        freshMatrix.push({ id, value });
+
+    setHillCoefficients((prev) => {
+      const prevMap = new Map(prev.map((h) => [h.id, h.value]));
+      const freshMatrix: HillCoefficientData[] = [];
+      for (const source of labels) {
+        for (const target of labels) {
+          const id = `${source}-${target}`;
+          freshMatrix.push({ id, value: prevMap.get(id) ?? 1 });
+        }
       }
-    }
-  
-    setHillCoefficients(freshMatrix);
+      const same = freshMatrix.length === prev.length && freshMatrix.every((entry, i) =>
+        prev[i]?.id === entry.id && prev[i]?.value === entry.value
+      );
+      return same ? prev : freshMatrix;
+    });
   }, [usedProteins]);
   
   
