@@ -38,7 +38,7 @@ def test_no_circuit_returns_message_when_none(monkeypatch):
     result = ipc_server.run_simulation_handler({})
 
     assert isinstance(result, dict)
-    assert result == {"success": "No circuit provided"}
+    assert result == {"ok": True, "message": "No circuit provided"}
 
 
 def test_no_circuit_returns_message_when_empty(monkeypatch):
@@ -47,7 +47,7 @@ def test_no_circuit_returns_message_when_empty(monkeypatch):
     result = ipc_server.run_simulation_handler({})
 
     assert isinstance(result, dict)
-    assert result == {"success": "No circuit provided"}
+    assert result == {"ok": True, "message": "No circuit provided"}
 
 
 def test_simulation_success_returns_image_and_data(monkeypatch):
@@ -76,7 +76,7 @@ def test_simulation_success_returns_image_and_data(monkeypatch):
     result = ipc_server.run_simulation_handler(data)
 
     # Basic shape and keys
-    assert result.get('success') is True
+    assert result.get('ok') is True
     assert 'image' in result and isinstance(result['image'], str) and len(result['image']) > 0
     assert 'data' in result
 
@@ -115,7 +115,7 @@ def test_exception_is_caught_and_returned(monkeypatch):
 
     result = ipc_server.run_simulation_handler({})
 
-    assert result.get('success') is False
+    assert result.get('ok') is False
     assert 'traceback' in result and isinstance(result['traceback'], str)
     assert 'RuntimeError' in result['traceback'] or 'boom' in result.get('error', '')
 
@@ -247,15 +247,16 @@ def test_main_loop_exception(monkeypatch):
     error_json = fake_stdout.buffer.read(error_length).decode("utf-8")
     error_response = json.loads(error_json)
 
-    assert not error_response.get("success", True)
-    assert "JSONDecodeError" in error_response.get("traceback", "")
+    # Undecodable input is reported as a synthetic __decode_error__ command
+    assert error_response.get("ok") is False
+    assert "__decode_error__" in error_response.get("error", "")
     
 class BrokenStdout:
     @property
     def buffer(self):
         raise IOError("cannot write")
     
-def test_main_loop_sys_exit(monkeypatch):
+def test_main_loop_write_failure_propagates(monkeypatch):
     bad_input = (5).to_bytes(4, 'little') + b"abcde"
     fake_stdin = MockStdio(bad_input)
     fake_stdout = BrokenStdout()
@@ -263,8 +264,6 @@ def test_main_loop_sys_exit(monkeypatch):
     monkeypatch.setattr(sys, "stdin", fake_stdin)
     monkeypatch.setattr(sys, "stdout", fake_stdout)
 
-    # enables pytest to catch SystemExit
-    with pytest.raises(SystemExit) as e:
+    # a failed stdout write is not swallowed; it propagates out of main()
+    with pytest.raises(IOError, match="cannot write"):
         ipc_server.main()
-
-    assert e.value.code == 1  # check that it exited with code 1

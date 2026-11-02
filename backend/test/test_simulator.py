@@ -27,8 +27,7 @@ def test_run_simulation_handler_one_node_input():
         "circuitSettings": {"simulationDuration": 5, "numTimePoints": 100}
     }
     result = run_simulation_handler(data)
-    assert "success" in result
-    assert result["success"] in (True, "No circuit provided")
+    assert result["ok"] is True
 
 def test_run_simulation_handler_two_node_input():
     data = {
@@ -80,8 +79,7 @@ def test_run_simulation_handler_two_node_input():
 
 
     result = run_simulation_handler(data)
-    assert "success" in result
-    assert result["success"] in (True, "No circuit provided")
+    assert result["ok"] is True
 
 
 def debug_helper(final_concentrations, expected_concentrations):
