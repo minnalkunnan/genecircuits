@@ -36,6 +36,7 @@ import { useCircuitContext, useSelectionStateContext, useHillCoefficientContext,
 import BrickBench from "./bench/BrickBench";
 import { SimulatorMode } from "./components/Ribbon/Ribbon";
 import hillCoefficientType from "./types/HillCoefficientType";
+import { turingPatternSimulatorHref } from "./utils/turingPatternSimulatorHref";
 
 
 export default function CircuitBuilderFlow() {
@@ -454,7 +455,21 @@ export default function CircuitBuilderFlow() {
                 setHillCoefficients={setHillCoefficients}
             />
 
-            {mode === "bench" ? <BrickBench /> : (
+            <div style={{ display: mode === "bench" ? "contents" : "none" }}>
+                <BrickBench active={mode === "bench"} />
+            </div>
+
+            {mode === "reaction-diffusion" && (
+                <div className="bottom-container">
+                    <iframe
+                        title="Reaction-Diffusion Simulator"
+                        src={turingPatternSimulatorHref()}
+                        style={{ width: "100%", height: "100%", border: 0 }}
+                    />
+                </div>
+            )}
+
+            {mode === "canvas" && (
             /* TOOLBOX AND REACT FLOW */
             <div className="bottom-container">
                 <PanelGroup

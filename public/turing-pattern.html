@@ -5,6 +5,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reaction-Diffusion Simulator</title>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add("embedded");
+    }
+  </script>
   <style>
     /* Top ribbon + mode bar align with Genetic Circuit Simulator (src/index.css + Ribbon).
        Workspace below aligns with the dark Brick Bench palette (src/bench/BrickBench.tsx). */
@@ -75,7 +80,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 8px 16px;
       min-height: 56px;
       color: #111;
       background: #fff;
@@ -244,6 +249,10 @@
       background: #f3f7f5;
       border-bottom: 1px solid #d9e2de;
       flex-shrink: 0;
+    }
+
+    html.embedded .app-mode-bar {
+      display: none;
     }
 
     .app-mode-switch {

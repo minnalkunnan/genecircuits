@@ -81,7 +81,11 @@ const palette: { head: string; items: PartDraft[] }[] = [
 
 const SIM_THROTTLE_MS = 100;
 
-export default function BrickBench() {
+type BrickBenchProps = {
+    active?: boolean;
+};
+
+export default function BrickBench({ active = true }: BrickBenchProps) {
     const [key, setKey] = useState("repressilator");
     const [cons, setCons] = useState<Construct[]>(() => PRESETS.repressilator.make());
     const [T, setT] = useState(PRESETS.repressilator.T);
@@ -173,6 +177,8 @@ export default function BrickBench() {
         });
     }, []);
     useEffect(() => {
+        if (!active) return;
+
         if (!payload.nodes.length) {
             reqId.current++;
             setSim(null);
@@ -182,11 +188,12 @@ export default function BrickBench() {
         const wait = Math.max(0, SIM_THROTTLE_MS - (Date.now() - lastSent.current));
         const timer = setTimeout(() => runSim(payload), wait);
         return () => clearTimeout(timer);
-    }, [payload, runSim]);
+    }, [active, payload, runSim]);
 
     useEffect(() => {
-        if (!playing) {
+        if (!active || !playing) {
             if (raf.current) cancelAnimationFrame(raf.current);
+            raf.current = null; 
             return;
         }
         let last = performance.now();
@@ -198,7 +205,7 @@ export default function BrickBench() {
         };
         raf.current = requestAnimationFrame(tick);
         return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-    }, [playing, T]);
+    }, [active, playing, T]);
 
     const load = (k: string) => {
         const preset = PRESETS[k];

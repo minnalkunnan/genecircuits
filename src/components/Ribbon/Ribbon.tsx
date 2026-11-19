@@ -32,7 +32,7 @@ import { ImportWindow } from "../../components";
 import { useAlert } from "../Alerts/AlertProvider";
 import { ProjectDataType } from "../../types";
 
-export type SimulatorMode = "canvas" | "bench";
+export type SimulatorMode = "canvas" | "bench" | "reaction-diffusion";
 
 const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: SimulatorMode) => void }> = ({ mode = "canvas", onModeChange }) => {
     const {
@@ -211,6 +211,29 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
 
     return (
         <>
+        <nav className="app-mode-bar" aria-label="Choose simulator">
+            <div className="app-mode-switch">
+                <button
+                    type="button"
+                    className={mode === "bench" ? "app-mode-option active" : "app-mode-option"}
+                    aria-current={mode === "bench" ? "page" : undefined}
+                    onClick={() => onModeChange?.("bench")}
+                >
+                    Brick Bench
+                </button>
+                <button
+                    type="button"
+                    className={mode === "reaction-diffusion" ? "app-mode-option active" : "app-mode-option"}
+                    aria-current={mode === "reaction-diffusion" ? "page" : undefined}
+                    onClick={() => onModeChange?.("reaction-diffusion")}
+                >
+                    Reaction-Diffusion
+                </button>
+            </div>
+        </nav>
+        
+        
+        {mode !== "reaction-diffusion" && (
             <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid #ccc' }}>
                 {/* LEFT */}
                 <Flex className="circuit-brand-actions" gap="3" align="center">
@@ -296,22 +319,7 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                     </Tooltip>
                 </Flex>
             </Flex>
-
-            <nav className="app-mode-bar" aria-label="Choose simulator">
-                <div className="app-mode-switch">
-                    <button
-                        type="button"
-                        className={mode === "bench" ? "app-mode-option active" : "app-mode-option"}
-                        aria-current={mode === "bench" ? "page" : undefined}
-                        onClick={() => onModeChange?.("bench")}
-                    >
-                        Brick Bench
-                    </button>
-                    <a className="app-mode-option" href={turingPatternSimulatorHref()}>
-                        Reaction-Diffusion
-                    </a>
-                </div>
-            </nav>
+            )}
 
 
             {/* IMPORT WINDOW */}
