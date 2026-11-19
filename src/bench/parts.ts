@@ -54,7 +54,7 @@ export const FPS = [
     { name: "BFP", color: "#8fa6ff" },
 ];
 export const DOM_COL: Record<Polarity, string> = { act: "#7fd18c", rep: "#d98a8a" };
-export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+export const MONO = "inherit";
 
 export const TAB = 9;
 export const BH = 38;

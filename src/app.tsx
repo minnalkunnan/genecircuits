@@ -1,10 +1,10 @@
 import { createRoot } from 'react-dom/client';
+import "@radix-ui/themes/styles.css";
 import './index.css';
 import CircuitBuilderFlow from "./CircuitBuilderFlow";
 import { ReactFlowProvider } from "@xyflow/react";
 import { ToolboxProvider } from "./context";
 import { Theme } from "@radix-ui/themes";
-import "@radix-ui/themes/styles.css";
 import { CircuitProvider, SelectionStateProvider, WindowStateProvider, HillCoefficientProvider, useCircuitContext } from './hooks';
 import React from 'react';
 import { AlertProvider } from "./components/Alerts/AlertProvider";

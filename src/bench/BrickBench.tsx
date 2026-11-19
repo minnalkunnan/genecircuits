@@ -515,7 +515,7 @@ export default function BrickBench() {
             {/* ── Brick Bench main area ─────────────────────── */}
             <main className="brick-bench bb-col" style={{ flex: "1 1 0", minWidth: 0, overflowY: "auto", padding: "26px 30px 44px" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 12, marginBottom: 22 }}>
-                    <h1 style={{ fontSize: 28, fontWeight: 500, margin: 0, fontFamily: "Georgia, serif" }}>Brick Bench</h1>
+                    <h1 style={{ fontSize: 28, fontWeight: 500, margin: 0, fontFamily: "inherit" }}>Brick Bench</h1>
                     <span style={{ fontSize: 13.5, color: MUT }}>the wiring and the trace update as you build</span>
                 </div>
 
@@ -560,7 +560,7 @@ export default function BrickBench() {
                             </svg>
                         </div>
                         <div style={{ flex: "1 1 220px", minWidth: 200, borderLeft: `3px solid ${GO}`, paddingLeft: 18, alignSelf: "stretch" }}>
-                            <div style={{ fontFamily: "Georgia, serif", fontSize: 15, lineHeight: 1.35 }}>{an.main}</div>
+                            <div style={{ fontFamily: "inherit", fontSize: 15, lineHeight: 1.35 }}>{an.main}</div>
                             {an.notes.map((n, i) => <div key={i} style={{ fontSize: 12, color: n.tone === "warn" ? AMBER : MUT, marginTop: 6, lineHeight: 1.45 }}>{n.text}</div>)}
                             {simError && <div style={{ fontSize: 12, color: AMBER, marginTop: 8 }}>{simError}</div>}
                         </div>
