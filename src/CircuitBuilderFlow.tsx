@@ -13,7 +13,6 @@ import './index.css';
 import { RepressMarker, PromoteMarker } from "./assets";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { syncNodeCounters } from "./utils";
-import HillCoefficientData from "./types/HillCoefficientType";
 import ProteinData from "./types/ProteinData";
 import {
     Toolbox, 
@@ -33,14 +32,22 @@ import {
     ScrollArea
 } from '@radix-ui/themes'
 import {ApplyCircuitTemplateProps, CircuitTemplate, AppNode} from "./types";
+import { useAppearance } from "./context";
 import { useCircuitContext, useSelectionStateContext, useHillCoefficientContext, useWindowStateContext } from "./hooks";
+import BrickBench from "./bench/BrickBench";
+import { SimulatorMode } from "./components/Ribbon/Ribbon";
 import hillCoefficientType from "./types/HillCoefficientType";
+import { turingPatternSimulatorHref } from "./utils/turingPatternSimulatorHref";
 
 
 export default function CircuitBuilderFlow() {
     const reactFlowWrapper = useRef(null);
     const { screenToFlowPosition } = useReactFlow();
     const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 800px)').matches);
+    const [mode, setMode] = useState<SimulatorMode>(() => {
+        const requested = new URLSearchParams(window.location.search).get("mode");
+        return requested === "canvas" ? "canvas" : "bench";
+    });
 
     useEffect(() => {
         const media = window.matchMedia('(max-width: 800px)');
@@ -58,6 +65,7 @@ export default function CircuitBuilderFlow() {
     }), []);
 
     const circuit = useCircuitContext();
+    const { appearance } = useAppearance();
     const {
         nodes, setNodes, onNodesChange,
         edges, setEdges, onEdgesChange,
@@ -253,27 +261,6 @@ export default function CircuitBuilderFlow() {
             setNodes((nds: AppNode[]) => [...nds, newNode]);
         }, [screenToFlowPosition, setNodes, setProteinData, getId, usedProteins, setUsedProteins]);
 
-    // Initializes the hillCoefficients array values when new usedProteins list is updated
-    useEffect(() => {
-        const updated: HillCoefficientData[] = [];
-
-        const labels = Array.from(usedProteins).sort();
-
-        labels.forEach((source) => {
-            labels.forEach((target) => {
-            const id = `${source}-${target}`;
-            const alreadyExists = hillCoefficients.some((h: HillCoefficientData) => h.id === id);
-            if (!alreadyExists) {
-                updated.push({ id, value: 1 }); // default value
-            }
-            });
-        });
-
-        if (updated.length > 0) {
-            setHillCoefficients(prev => [...prev, ...updated]);
-        }
-    }, [usedProteins]);
-
     const applyCircuitTemplate = ({
         template,
         proteins,
@@ -459,8 +446,7 @@ export default function CircuitBuilderFlow() {
             <PromoteMarker /> 
 
             {/* TOP MENU FUNCTION BUTTONS */}
-            <Ribbon
-            />
+            <Ribbon mode={mode} onModeChange={setMode} />
 
             {/* HILL COEFFICIENT MATRIX WINDOW */}
             <HillCoefficientMatrix 
@@ -471,7 +457,22 @@ export default function CircuitBuilderFlow() {
                 setHillCoefficients={setHillCoefficients}
             />
 
-            {/* TOOLBOX AND REACT FLOW */}
+            <div style={{ display: mode === "bench" ? "contents" : "none" }}>
+                <BrickBench active={mode === "bench"} />
+            </div>
+
+            {mode === "reaction-diffusion" && (
+                <div className="bottom-container">
+                    <iframe
+                        title="Reaction-Diffusion Simulator"
+                        src={turingPatternSimulatorHref()}
+                        style={{ width: "100%", height: "100%", border: 0 }}
+                    />
+                </div>
+            )}
+
+            {mode === "canvas" && (
+            /* TOOLBOX AND REACT FLOW */
             <div className="bottom-container">
                 <PanelGroup
                     key={isMobile ? 'mobile-layout' : 'desktop-layout'}
@@ -555,7 +556,7 @@ export default function CircuitBuilderFlow() {
                     >
                         {showOutputWindow && renderOutputWindow()}
                         
-                        <ReactFlow className="react-flow"
+                        <ReactFlow className="react-flow" colorMode={appearance}
                             nodes={nodes}
                             edges={edges}
                             onConnect={onConnect}
@@ -576,6 +577,7 @@ export default function CircuitBuilderFlow() {
                     </Panel>
                 </PanelGroup>
             </div>
+            )}
         </>
     );
 }

@@ -20,6 +20,14 @@ def _append_parser_log(lines):
     except OSError:
         pass
 
+def _as_k(value):
+    try:
+        k = float(value)
+    except (TypeError, ValueError):
+        return 1.0
+    return k if k > 0 else 1.0
+
+
 def parse_circuit(json_data):
     try:
         if 'nodes' not in json_data or 'edges' not in json_data or 'proteins' not in json_data:
@@ -58,7 +66,8 @@ def parse_circuit(json_data):
                         degrad=protein_data['lossRate'],
                         gates=[],
                         beta=protein_data['beta'],
-                        basal_concentration=protein_data.get('inputFunctionData', {}).get('steadyStateValue', 0)
+                        basal_concentration=protein_data.get('inputFunctionData', {}).get('steadyStateValue', 0),
+                        k=_as_k(protein_data.get('K', 1)),
                     )
 
                     if protein_data['inputFunctionType'] == "pulse":
@@ -144,20 +153,22 @@ def parse_circuit(json_data):
             #print("Hill1: ", hill1)
             hill2 = hill_table.get(f"{second.mName}-{node_id_to_protein[first_target_nodeid].mName}", 1) if first_target_nodeid else 1
             #print("Hill2: ", hill2)
+            first_k = getattr(first, "mK", 1) or 1
+            second_k = getattr(second, "mK", 1) or 1
 
             # Determine gate type based on edge types
             if firstType == 'promote' and secondType == 'promote':
                 gate_type = f"aa_{gate_family}"
-                gate = Gate(gate_type, firstInput=firstId, secondInput=secondId, firstHill=hill1, secondHill=hill2)
+                gate = Gate(gate_type, firstInput=firstId, secondInput=secondId, firstHill=hill1, secondHill=hill2, firstK=first_k, secondK=second_k)
             elif firstType == 'promote' and secondType == 'repress':
                 gate_type = f"ar_{gate_family}"
-                gate = Gate(gate_type, firstInput=firstId, secondInput=secondId, firstHill=hill1, secondHill=hill2)
+                gate = Gate(gate_type, firstInput=firstId, secondInput=secondId, firstHill=hill1, secondHill=hill2, firstK=first_k, secondK=second_k)
             elif firstType == 'repress' and secondType == 'promote':
                 gate_type = f"ar_{gate_family}"
-                gate = Gate(gate_type, firstInput=secondId, secondInput=firstId, firstHill=hill2, secondHill=hill1)
+                gate = Gate(gate_type, firstInput=secondId, secondInput=firstId, firstHill=hill2, secondHill=hill1, firstK=second_k, secondK=first_k)
             elif firstType == 'repress' and secondType == 'repress':
                 gate_type = f"rr_{gate_family}"
-                gate = Gate(gate_type, firstInput=secondId, secondInput=firstId, firstHill=hill2, secondHill=hill1)
+                gate = Gate(gate_type, firstInput=secondId, secondInput=firstId, firstHill=hill2, secondHill=hill1, firstK=second_k, secondK=first_k)
             else:
                 raise ValueError(f"Unknown edge types for gate '{gate_id}': {firstType}, {secondType}")
 
@@ -177,12 +188,13 @@ def parse_circuit(json_data):
             target_protein = node_id_to_protein[target]
             source_internal_id = id_map[source]
             hill = hill_table.get(f"{source_protein.mName}-{target_protein.mName}", 1)
+            source_k = getattr(source_protein, "mK", 1) or 1
             
             if edge_type == "promote":
-                gate = Gate("act_hill", firstInput=int(source_internal_id), firstHill=hill)
+                gate = Gate("act_hill", firstInput=int(source_internal_id), firstHill=hill, firstK=source_k)
                 target_protein.mGates.append(gate)
             elif edge_type == "repress":
-                gate = Gate("rep_hill", firstInput=int(source_internal_id), firstHill=hill)
+                gate = Gate("rep_hill", firstInput=int(source_internal_id), firstHill=hill, firstK=source_k)
                 target_protein.mGates.append(gate)
             else:
                 raise ValueError(f"Unknown edge type for gate '{target}': {edge_type}")

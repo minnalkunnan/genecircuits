@@ -13,7 +13,9 @@ import {
     X,
     Dna,
     AreaChart,
-    Grid3X3
+    Grid3X3,
+    Moon,
+    Sun
 } from "lucide-react";
 import {
     Flex,
@@ -25,14 +27,17 @@ import {
     Tooltip,
     Dialog,
     DropdownMenu,
-    Slider,
+    Switch,
     AlertDialog
 } from "@radix-ui/themes";
 import { ImportWindow } from "../../components";
+import { useAppearance } from '../../context';
 import { useAlert } from "../Alerts/AlertProvider";
 import { ProjectDataType } from "../../types";
 
-const TopRibbon: React.FC = () => {
+export type SimulatorMode = "canvas" | "bench" | "reaction-diffusion";
+
+const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: SimulatorMode) => void }> = ({ mode = "canvas", onModeChange }) => {
     const {
         nodes, setNodes, edges, setEdges, proteins
     } = useCircuitContext();
@@ -47,6 +52,7 @@ const TopRibbon: React.FC = () => {
         activeTab, setActiveTab
     } = useWindowStateContext();
     const { showAlert } = useAlert();
+    const { appearance, setAppearance } = useAppearance();
 
     const [showClearConfirmation, setShowClearConfirmation] = useState(false); // Track whether clear confirmation window is open or not
     const [isRunning, setIsRunning] = useState(false) // Track if simulation is running or not
@@ -209,7 +215,30 @@ const TopRibbon: React.FC = () => {
 
     return (
         <>
-            <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid #ccc' }}>
+        <nav className="app-mode-bar" aria-label="Choose simulator">
+            <div className="app-mode-switch">
+                <button
+                    type="button"
+                    className={mode === "bench" ? "app-mode-option active" : "app-mode-option"}
+                    aria-current={mode === "bench" ? "page" : undefined}
+                    onClick={() => onModeChange?.("bench")}
+                >
+                    Brick Bench
+                </button>
+                <button
+                    type="button"
+                    className={mode === "reaction-diffusion" ? "app-mode-option active" : "app-mode-option"}
+                    aria-current={mode === "reaction-diffusion" ? "page" : undefined}
+                    onClick={() => onModeChange?.("reaction-diffusion")}
+                >
+                    Reaction-Diffusion
+                </button>
+            </div>
+        </nav>
+        
+        
+        {mode !== "reaction-diffusion" && (
+            <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid var(--chrome-border)', background: 'var(--chrome-bg)' }}>
                 {/* LEFT */}
                 <Flex className="circuit-brand-actions" gap="3" align="center">
                     <Dna color="var(--accent-9)" />
@@ -255,25 +284,31 @@ const TopRibbon: React.FC = () => {
                 </Box>
 
                 <Flex className="circuit-sim-actions" gap="2" align="center">
-                    <Tooltip content="Hill Coefficient Matrix">
-                        <IconButton aria-label="Hill coefficient matrix" variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
-                            <Grid3X3 size={20} />
-                        </IconButton>
-                    </Tooltip>
+                    {/* Brick Bench sets Hill coefficients per gene, so the matrix is only for the canvas builder */}
+                    {mode === "canvas" && (
+                        <Tooltip content="Hill Coefficient Matrix">
+                            <IconButton aria-label="Hill coefficient matrix" variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
+                                <Grid3X3 size={20} />
+                            </IconButton>
+                        </Tooltip>
+                    )}
 
-                    <Button
-                        className="circuit-run-button"
-                        variant="solid"
-                        size="3"
-                        aria-label={isRunning ? "Stop simulation" : "Run simulation"}
-                        onClick={handlePlayClick}
-                        disabled={false}
-                        style={isRunning ? { backgroundColor: '#e74c3c', borderColor: '#e74c3c' } : {}}
-                    >
-                        {isRunning
-                            ? (<><X size={20} /><span className="run-button-label">Stop</span></>)
-                            : (<><Play size={20} /><span className="run-button-label">Run Simulation</span></>)}
-                    </Button>
+                    {/* Running the gene circuit simulation only works from the node canvas; Brick Bench has no run action, and Reaction-Diffusion has its own */}
+                    {mode === "canvas" && (
+                        <Button
+                            className="circuit-run-button"
+                            variant="solid"
+                            size="3"
+                            aria-label={isRunning ? "Stop simulation" : "Run simulation"}
+                            onClick={handlePlayClick}
+                            disabled={false}
+                            style={isRunning ? { backgroundColor: '#e74c3c', borderColor: '#e74c3c' } : {}}
+                        >
+                            {isRunning
+                                ? (<><X size={20} /><span className="run-button-label">Stop</span></>)
+                                : (<><Play size={20} /><span className="run-button-label">Run Simulation</span></>)}
+                        </Button>
+                    )}
 
                     <Tooltip content={showOutputWindow ? "Close Output" : "Show Output"}>
                         <IconButton aria-label={showOutputWindow ? "Close simulation output" : "Show simulation output"} variant="outline" size="3" color="gray" onClick={() => setShowOutputWindow(!showOutputWindow)}>
@@ -294,17 +329,7 @@ const TopRibbon: React.FC = () => {
                     </Tooltip>
                 </Flex>
             </Flex>
-
-            <nav className="app-mode-bar" aria-label="Choose simulator">
-                <div className="app-mode-switch">
-                    <span className="app-mode-option active" aria-current="page">
-                        Gene Circuit Builder
-                    </span>
-                    <a className="app-mode-option" href={turingPatternSimulatorHref()}>
-                        Reaction-Diffusion
-                    </a>
-                </div>
-            </nav>
+            )}
 
 
             {/* IMPORT WINDOW */}
@@ -336,59 +361,21 @@ const TopRibbon: React.FC = () => {
             <Dialog.Root open={showSettingsWindow} onOpenChange={setShowSettingsWindow}>
                 <Dialog.Content maxWidth="400px">
                     <Flex justify="between">
-                        <Dialog.Title mt="1">Circuit Settings</Dialog.Title>
-                        <Dialog.Close><IconButton variant="ghost" color="gray"><X /></IconButton></Dialog.Close>
+                        <Dialog.Title mt="1">Settings</Dialog.Title>
+                        <Dialog.Close><IconButton variant="ghost" color="gray" aria-label="Close settings"><X /></IconButton></Dialog.Close>
                     </Flex>
-                    <Dialog.Description mb="3">Make changes to your project settings.</Dialog.Description>
+                    <Dialog.Description mb="3">Choose how the app looks.</Dialog.Description>
 
-                    <Flex direction="column" gap="3" mt="4">
-                        <Text as="div" weight="bold">Project Name</Text>
-                        <TextField.Root
-                            placeholder="Enter your full name"
-                            mb="2"
-                            value={circuitSettings.projectName ?? ""}
-                            onChange={(e) => setCircuitSettings({ ...circuitSettings, projectName: e.target.value })}
+                    <Flex align="center" justify="between" gap="3" mt="4">
+                        <Flex align="center" gap="2">
+                            {appearance === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+                            <Text as="div" weight="bold">Dark mode</Text>
+                        </Flex>
+                        <Switch
+                            aria-label="Dark mode"
+                            checked={appearance === "dark"}
+                            onCheckedChange={(checked: boolean) => setAppearance(checked ? "dark" : "light")}
                         />
-
-                        {/* simulation duration */}
-                        <Text as="div" weight="bold">Simulation Duration (seconds)</Text>
-                        <Flex gap="3" align="center">
-                            <Slider
-                                id="simulation-duration"
-                                min={1}
-                                max={120}
-                                step={1}
-                                value={[circuitSettings.simulationDuration ?? 10]}
-                                onValueChange={(value) => setCircuitSettings({ ...circuitSettings, simulationDuration: value[0] })}
-                                className="flex-1"
-                            />
-                            <TextField.Root
-                                type="number"
-                                value={circuitSettings.simulationDuration ?? 10}
-                                onChange={(e) => setCircuitSettings({ ...circuitSettings, simulationDuration: parseInt(e.target.value) })}
-                                className="w-20"
-                            />
-                        </Flex>
-
-                        {/* num time points */}
-                        <Text as="div" weight="bold">Number of Time Points</Text>
-                        <Flex gap="3" align="center">
-                            <Slider
-                                id="time-points"
-                                min={1}
-                                max={100}
-                                step={1}
-                                value={[circuitSettings.numTimePoints ?? 10]}
-                                onValueChange={(value) => setCircuitSettings({ ...circuitSettings, numTimePoints: value[0] })}
-                                className="flex-1"
-                            />
-                            <TextField.Root
-                                type="number"
-                                value={circuitSettings.numTimePoints ?? 10}
-                                onChange={(e) => setCircuitSettings({ ...circuitSettings, numTimePoints: parseInt(e.target.value) })}
-                                className="w-20"
-                            />
-                        </Flex>
                     </Flex>
 
                     <Flex justify="end" mt="5"><Dialog.Close><Button size="3">Close</Button></Dialog.Close></Flex>

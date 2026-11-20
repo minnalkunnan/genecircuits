@@ -1,9 +1,10 @@
 .output-overlay {
-    background-color: white;
+    color: var(--bb-ink);
+    background-color: var(--surface-pop);
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--pop-border);
     transition: box-shadow 0.3s ease;
 }
 
@@ -12,13 +13,13 @@
 }
 
 .drag-handle {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--pop-border);
     cursor: move;
     user-select: none;
 }
 
 .content-area {
-    background-color: #f8f9fa;
+    background-color: var(--surface-pop-alt);
     overflow: hidden;
     display: flex;
 }
@@ -47,14 +48,14 @@
 }
 
 .no-data-message {
-    color: #64748b;
+    color: var(--pop-muted);
     font-style: italic;
     text-align: center;
     padding: 18px;
-    background-color: #f7fafc;
+    background-color: var(--surface-pop-alt);
     border-radius: 6px;
     font-weight: 500;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed var(--pop-dashed);
 }
 
 @media (max-width: 800px) {

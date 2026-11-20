@@ -16,5 +16,9 @@ export function turingPatternSimulatorHref(): string {
     url.pathname += "/";
   }
 
-  return new URL("turing-pattern.html", url.href).href;
+  const target = new URL("turing-pattern.html", url.href);
+  target.searchParams.set("return", window.location.href);
+  // Carry the current appearance into the embedded simulator (dark unless the app is in light mode).
+  target.searchParams.set("theme", document.documentElement.dataset.theme === "light" ? "light" : "dark");
+  return target.href;
 }

@@ -1,15 +1,108 @@
+/* Theme palette. Dark is the default; Light is applied via <html data-theme="light"> (see ThemeContext). */
+:root {
+  --bb-ink: #e7ede7;
+  --bb-mut: #8a968c;
+  --bb-field: #0f1512;
+  --bb-panel: #151d18;
+  --bb-sunk: #101713;
+  --bb-line: #26312a;
+  --bb-line-strong: #3a4a40;
+  --bb-on: #1e2b23;
+  --bb-amber: #f0a442;
+  --bb-go: #4ade80;
+  --bb-go-ink: #0a2213;
+  --bb-warn: #e8879c;
+  --bb-warn-line: #5a3540;
+  --bb-scroll: #273029;
+
+  --chrome-bg: #151d18;
+  --chrome-border: #26312a;
+  --modebar-bg: #101713;
+  --modebar-border: #26312a;
+  --modebar-track: #0f1512;
+  --modebar-track-border: #26312a;
+  --modebar-ink: #8a968c;
+  --modebar-hover-ink: #4ade80;
+  --modebar-hover-bg: rgba(255, 255, 255, 0.05);
+  --modebar-active-ink: #e7ede7;
+  --modebar-active-bg: #1e2b23;
+  --modebar-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --canvas-bg: #0f1512;
+  --sidebar-bg: #101713;
+  --sidebar-border: #26312a;
+  --resize-handle: #26312a;
+  --node-bg: #151d18;
+  --node-border: #3a4a40;
+  --surface-pop: #151d18;
+  --surface-pop-alt: #101713;
+  --pop-border: rgba(255, 255, 255, 0.1);
+  --pop-muted: #8a968c;
+  --pop-dashed: #3a4a40;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bb-ink: #1c2620;
+  --bb-mut: #5f6b63;
+  --bb-field: #f4f7f5;
+  --bb-panel: #ffffff;
+  --bb-sunk: #eaf0ec;
+  --bb-line: #d5ded8;
+  --bb-line-strong: #b4c1b9;
+  --bb-on: #dcebe2;
+  --bb-amber: #b86e0a;
+  --bb-go: #22a55a;
+  --bb-go-ink: #ffffff;
+  --bb-warn: #b4324f;
+  --bb-warn-line: #e4b4c0;
+  --bb-scroll: #c3cec7;
+
+  --chrome-bg: #ffffff;
+  --chrome-border: #cccccc;
+  --modebar-bg: #f3f7f5;
+  --modebar-border: #d9e2de;
+  --modebar-track: #e7efeb;
+  --modebar-track-border: #cbd8d2;
+  --modebar-ink: #53645d;
+  --modebar-hover-ink: #1f6f58;
+  --modebar-hover-bg: rgba(255, 255, 255, 0.55);
+  --modebar-active-ink: #174f3f;
+  --modebar-active-bg: #ffffff;
+  --modebar-active-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
+
+  --canvas-bg: #f7f9fb;
+  --sidebar-bg: #fcfcfc;
+  --sidebar-border: #dddddd;
+  --resize-handle: #cccccc;
+  --node-bg: #ffffff;
+  --node-border: #000000;
+  --surface-pop: #ffffff;
+  --surface-pop-alt: #f8f9fa;
+  --pop-border: rgba(0, 0, 0, 0.08);
+  --pop-muted: #64748b;
+  --pop-dashed: #cbd5e1;
+  color-scheme: light;
+}
+
+:root {
+  --app-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
 html,
 body,
 #root {
   width: 100%;
   height: 100%;
   min-height: 0;
+  font-family: var(--app-font-family);
 }
 
 body,
 #root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
+  background: var(--chrome-bg);
+  font-family: var(--app-font-family);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -25,11 +118,23 @@ body,
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  font-family: var(--app-font-family);
+}
+
+/* Use the same family for all Radix typography styles. */
+.radix-themes.app-shell {
+  --default-font-family: var(--app-font-family);
+  --heading-font-family: var(--app-font-family);
+  --code-font-family: var(--app-font-family);
+  --strong-font-family: var(--app-font-family);
+  --em-font-family: var(--app-font-family);
+  --quote-font-family: var(--app-font-family);
+  font-family: var(--app-font-family);
 }
 
 .top-ribbon-container {
-  background-color: white;
-  border-bottom: 1px solid #ccc;
+  background-color: var(--chrome-bg);
+  border-bottom: 1px solid var(--chrome-border);
   display: flex;
   justify-content: center;
   padding: 3px;
@@ -50,21 +155,23 @@ body,
 
 .app-mode-bar {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
   padding: 6px 12px;
-  background: #f3f7f5;
-  border-bottom: 1px solid #d9e2de;
+  background: var(--modebar-bg);
+  border-bottom: 1px solid var(--modebar-border);
   flex-shrink: 0;
 }
 
 .app-mode-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  width: min(100%, 420px);
+  width: min(100%, 460px);
   padding: 3px;
-  border: 1px solid #cbd8d2;
+  border: 1px solid var(--modebar-track-border);
   border-radius: 9px;
-  background: #e7efeb;
+  background: var(--modebar-track);
 }
 
 .app-mode-option {
@@ -73,25 +180,53 @@ body,
   justify-content: center;
   min-height: 30px;
   padding: 5px 16px;
+  border: none;
+  background: transparent;
   border-radius: 6px;
-  color: #53645d;
+  color: var(--modebar-ink);
+  font: inherit;
   font-size: 13px;
   font-weight: 650;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .app-mode-option:hover {
-  color: #1f6f58;
-  background: rgba(255, 255, 255, 0.55);
+  color: var(--modebar-hover-ink);
+  background: var(--modebar-hover-bg);
 }
 
 .app-mode-option.active {
-  color: #174f3f;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(23, 79, 63, 0.14);
+  color: var(--modebar-active-ink);
+  background: var(--modebar-active-bg);
+  box-shadow: var(--modebar-active-shadow);
 }
+
+.legacy-toggle {
+  border: 1px solid var(--modebar-track-border);
+  background: transparent;
+  color: var(--modebar-ink);
+  border-radius: 9px;
+  min-height: 36px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.legacy-toggle:hover,
+.legacy-toggle.active {
+  color: var(--modebar-active-ink);
+  background: var(--modebar-active-bg);
+  box-shadow: var(--modebar-active-shadow);
+}
+
 .circuit-builder-container {
   display: flex;
   flex: 1 1 auto;
@@ -99,7 +234,7 @@ body,
   height: 100%;
   min-width: 0;
   min-height: 0;
-  background-color: #F7F9FB;
+  background-color: var(--canvas-bg);
 }
 
 .react-resizable-panel {
@@ -109,21 +244,21 @@ body,
 .resize-handle-vertical {
   width: 5px;
   cursor: ew-resize;
-  background: #ccc;
+  background: var(--resize-handle);
 }
 
 .resize-handle-horizontal {
   height: 5px;
   cursor: ns-resize;
-  background: #ccc;
+  background: var(--resize-handle);
 }
 
 .left-pane {
   display: flex;
   flex-direction: column;
   width: 20%;
-  background: #fcfcfc;
-  border-right: 1px solid #ddd;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   box-sizing: border-box;
   min-width: 175px;
   max-width: 400px;
@@ -135,7 +270,7 @@ body,
   flex-grow: 1;
   display: flex;
   position: relative;
-  background-color: #F7F9FB;
+  background-color: var(--canvas-bg);
 }
 
 .dndnode {
@@ -166,15 +301,16 @@ body,
 }
 
 .custom-node {
-  border: 1px solid black;
+  border: 1px solid var(--node-border);
   padding: 5px;
   border-radius: 5px;
-  background: white;
+  background: var(--node-bg);
+  color: var(--bb-ink);
 }
 
 .tab-navigation {
   display: flex;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .tab-button {
@@ -189,7 +325,6 @@ body,
 }
 
 .react-flow__controls {
-
   bottom: 5% !important;
 }
 
@@ -224,7 +359,53 @@ body,
   bottom: 0;
   z-index: 2;
   padding: 12px 0 4px;
-  background: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc 24%);
+  background: linear-gradient(to bottom, transparent, var(--sidebar-bg) 24%);
+}
+
+/* Wide: equal side columns keep the project name centered on the page */
+@media (min-width: 1241px) {
+  .circuit-ribbon {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 400px) minmax(0, 1fr);
+  }
+
+  .circuit-project-name {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .circuit-sim-actions {
+    justify-self: end;
+  }
+}
+
+/* Medium: not enough room for one row, so the project name drops to its own line */
+@media (min-width: 801px) and (max-width: 1240px) {
+  .circuit-ribbon {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand simulation"
+      "project project";
+    row-gap: 8px !important;
+  }
+
+  .circuit-brand-actions {
+    grid-area: brand;
+  }
+
+  .circuit-project-name {
+    grid-area: project;
+    justify-self: center;
+    width: 100%;
+    max-width: 400px !important;
+    margin: 0 !important;
+  }
+
+  .circuit-sim-actions {
+    grid-area: simulation;
+    justify-self: end;
+  }
 }
 
 @media (max-width: 800px) {
@@ -310,7 +491,7 @@ body,
     min-width: 0;
     max-width: none;
     border-right: 0;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--sidebar-border);
   }
 
   .circuit-builder-container .flow-wrapper {
@@ -320,7 +501,7 @@ body,
 
   .resize-handle-horizontal {
     height: 8px;
-    background: #d5ddd9;
+    background: var(--bb-line-strong);
     touch-action: none;
   }
 

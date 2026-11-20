@@ -1,10 +1,11 @@
 /* Alert and Output Window Shared Styles */
 .output-overlay {
-    background-color: white;
+    color: var(--bb-ink);
+    background-color: var(--surface-pop);
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--pop-border);
     transition: box-shadow 0.3s ease;
 }
 
@@ -14,20 +15,20 @@
 
 
 .content-area {
-    background-color: #f8f9fa;
+    background-color: var(--surface-pop-alt);
     overflow: hidden;
     display: flex;
 }
 
 .no-data-message {
-    color: #64748b;
+    color: var(--pop-muted);
     font-style: italic;
     text-align: center;
     padding: 18px;
-    background-color: #f7fafc;
+    background-color: var(--surface-pop-alt);
     border-radius: 6px;
     font-weight: 500;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed var(--pop-dashed);
 }
 
 /* Alert Specific Styles */
@@ -47,7 +48,7 @@
     display: flex;
     justify-content: flex-end;
     padding: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid var(--pop-border);
 }
 
 /* Alert Overlay */
@@ -75,11 +76,11 @@
 
 /* Alert Content */
 .alert-content {
-    background-color: white;
+    background-color: var(--surface-pop);
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--pop-border);
     transition: box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -97,7 +98,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--pop-border);
     user-select: none;
 }
 
@@ -122,7 +123,7 @@
     justify-content: center;
     padding: 4px;
     border-radius: 4px;
-    color: #64748b;
+    color: var(--pop-muted);
 }
 
 .alert-close-button:hover {
@@ -136,18 +137,18 @@
     justify-content: center;
     align-items: center;
     padding: 16px;
-    background-color: #f8f9fa;
+    background-color: var(--surface-pop-alt);
 }
 
 .alert-message {
-    color: #64748b;
+    color: var(--pop-muted);
     font-style: italic;
     text-align: center;
     padding: 18px;
-    background-color: #f7fafc;
+    background-color: var(--surface-pop-alt);
     border-radius: 6px;
     font-weight: 500;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed var(--pop-dashed);
     width: 70%;
 }
 
@@ -156,7 +157,7 @@
     display: flex;
     justify-content: flex-end;
     padding: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid var(--pop-border);
 }
 
 .alert-ok-button {
