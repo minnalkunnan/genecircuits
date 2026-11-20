@@ -32,6 +32,7 @@ import {
     ScrollArea
 } from '@radix-ui/themes'
 import {ApplyCircuitTemplateProps, CircuitTemplate, AppNode} from "./types";
+import { useAppearance } from "./context";
 import { useCircuitContext, useSelectionStateContext, useHillCoefficientContext, useWindowStateContext } from "./hooks";
 import BrickBench from "./bench/BrickBench";
 import { SimulatorMode } from "./components/Ribbon/Ribbon";
@@ -64,6 +65,7 @@ export default function CircuitBuilderFlow() {
     }), []);
 
     const circuit = useCircuitContext();
+    const { appearance } = useAppearance();
     const {
         nodes, setNodes, onNodesChange,
         edges, setEdges, onEdgesChange,
@@ -554,7 +556,7 @@ export default function CircuitBuilderFlow() {
                     >
                         {showOutputWindow && renderOutputWindow()}
                         
-                        <ReactFlow className="react-flow"
+                        <ReactFlow className="react-flow" colorMode={appearance}
                             nodes={nodes}
                             edges={edges}
                             onConnect={onConnect}

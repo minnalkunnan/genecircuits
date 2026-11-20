@@ -3,7 +3,7 @@ import "@radix-ui/themes/styles.css";
 import './index.css';
 import CircuitBuilderFlow from "./CircuitBuilderFlow";
 import { ReactFlowProvider } from "@xyflow/react";
-import { ToolboxProvider } from "./context";
+import { ToolboxProvider, ThemeProvider, useAppearance } from "./context";
 import { Theme } from "@radix-ui/themes";
 import { CircuitProvider, SelectionStateProvider, WindowStateProvider, HillCoefficientProvider, useCircuitContext } from './hooks';
 import React from 'react';
@@ -32,16 +32,27 @@ function HillCoefficientProviderWrapper({ children }: { children: React.ReactNod
     return <HillCoefficientProvider usedProteins={usedProteins}>{children}</HillCoefficientProvider>;
 }
 
+function ThemedShell({ children }: { children: React.ReactNode }) {
+    const { appearance } = useAppearance();
+    return (
+        <Theme className="app-shell" appearance={appearance} accentColor='jade' radius='large' scaling='95%'>
+            {children}
+        </Theme>
+    );
+}
+
 if (rootElement) {
     const root = createRoot(rootElement);
     root.render(
         <ReactFlowProvider>
             <ToolboxProvider>
-                <Theme className="app-shell" appearance='light' accentColor='jade' radius='large' scaling='95%'>
-                    <ProvidersWrapper>
-                        <CircuitBuilderFlow />
-                    </ProvidersWrapper>
-                </Theme>
+                <ThemeProvider>
+                    <ThemedShell>
+                        <ProvidersWrapper>
+                            <CircuitBuilderFlow />
+                        </ProvidersWrapper>
+                    </ThemedShell>
+                </ThemeProvider>
             </ToolboxProvider>
         </ReactFlowProvider>
     );

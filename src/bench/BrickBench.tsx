@@ -22,14 +22,14 @@ import {
 import { PRESETS } from "./presets";
 import { buildScene, SCENE_H, SCENE_W } from "./scene";
 
-const INK = "#e7ede7";
-const MUT = "#8a968c";
-const FIELD = "#0f1512";
-const PANEL = "#151d18";
-const SUNK = "#101713";
-const LINE = "#26312a";
-const AMBER = "#f0a442";
-const GO = "#4ade80";
+const INK = "var(--bb-ink)";
+const MUT = "var(--bb-mut)";
+const FIELD = "var(--bb-field)";
+const PANEL = "var(--bb-panel)";
+const SUNK = "var(--bb-sunk)";
+const LINE = "var(--bb-line)";
+const AMBER = "var(--bb-amber)";
+const GO = "var(--bb-go)";
 
 const CELLS = [
     { x: 72, y: 52, a: -17 }, { x: 168, y: 40, a: 11 }, { x: 246, y: 76, a: -41 },
@@ -46,9 +46,9 @@ function hex2rgb(h: string): [number, number, number] {
 function Btn({ children, onClick, tone = "quiet", style }: { children: ReactNode; onClick: () => void; tone?: "quiet" | "go" | "on" | "warn"; style?: CSSProperties }) {
     return (
         <button type="button" onClick={onClick} style={{
-            background: tone === "go" ? GO : tone === "on" ? "#1e2b23" : "transparent",
-            color: tone === "go" ? "#0a2213" : tone === "warn" ? "#e8879c" : INK,
-            border: `1px solid ${tone === "go" ? GO : tone === "warn" ? "#5a3540" : LINE}`,
+            background: tone === "go" ? GO : tone === "on" ? "var(--bb-on)" : "transparent",
+            color: tone === "go" ? "var(--bb-go-ink)" : tone === "warn" ? "var(--bb-warn)" : INK,
+            border: `1px solid ${tone === "go" ? GO : tone === "warn" ? "var(--bb-warn-line)" : LINE}`,
             borderRadius: 6, padding: "5px 9px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", ...style,
         }}>{children}</button>
     );
@@ -379,7 +379,7 @@ export default function BrickBench({ active = true }: BrickBenchProps) {
             <style>{`
                 .brick-bench button:focus-visible,.brick-bench input:focus-visible,.brick-bench select:focus-visible{outline:2px solid ${GO};outline-offset:2px}
                 .bb-col::-webkit-scrollbar{width:9px;height:9px}
-                .bb-col::-webkit-scrollbar-thumb{background:#273029;border-radius:9px}
+                .bb-col::-webkit-scrollbar-thumb{background:var(--bb-scroll);border-radius:9px}
                 .bb-col::-webkit-scrollbar-track{background:transparent}
             `}</style>
             {drag && (
@@ -442,7 +442,7 @@ export default function BrickBench({ active = true }: BrickBenchProps) {
                         return (
                             <div key={c.id} data-drop={c.id} style={{
                                 width: "100%", background: PANEL, borderRadius: 12, padding: "12px 14px",
-                                border: `1px ${drag ? "dashed" : "solid"} ${drag ? (fits ? GO : LINE) : on ? "#3a4a40" : LINE}`,
+                                border: `1px ${drag ? "dashed" : "solid"} ${drag ? (fits ? GO : LINE) : on ? "var(--bb-line-strong)" : LINE}`,
                                 opacity: drag && !fits ? 0.5 : 1,
                             }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -508,10 +508,10 @@ export default function BrickBench({ active = true }: BrickBenchProps) {
                                 </g>
                             );
                         })}
-                        <text x="10" y="17" fontSize="10.5" fontFamily={MONO} fill={channel === "merge" ? MUT : (channels.find((c) => c.name === channel)?.color || MUT)}>
+                        <text x="10" y="17" fontSize="10.5" fontFamily={MONO} fill={channel === "merge" ? "#8a968c" : (channels.find((c) => c.name === channel)?.color || "#8a968c")}>
                             {channels.length ? (channel === "merge" ? "merge" : channel) : "brightfield"}
                         </text>
-                        <text x="290" y="17" textAnchor="end" fontSize="10.5" fontFamily={MONO} fill={MUT}>t = {timeNow.toFixed(1)}</text>
+                        <text x="290" y="17" textAnchor="end" fontSize="10.5" fontFamily={MONO} fill="#8a968c">t = {timeNow.toFixed(1)}</text>
                     </svg>
                     <div style={{ padding: "8px 2px 0" }}>
                         <Slider label="Gain" value={gain} min={0.4} max={3.5} log onChange={setGain} fmt={(v) => `${v.toFixed(1)}×`} />

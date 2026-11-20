@@ -13,7 +13,9 @@ import {
     X,
     Dna,
     AreaChart,
-    Grid3X3
+    Grid3X3,
+    Moon,
+    Sun
 } from "lucide-react";
 import {
     Flex,
@@ -25,10 +27,11 @@ import {
     Tooltip,
     Dialog,
     DropdownMenu,
-    Slider,
+    Switch,
     AlertDialog
 } from "@radix-ui/themes";
 import { ImportWindow } from "../../components";
+import { useAppearance } from '../../context';
 import { useAlert } from "../Alerts/AlertProvider";
 import { ProjectDataType } from "../../types";
 
@@ -49,6 +52,7 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
         activeTab, setActiveTab
     } = useWindowStateContext();
     const { showAlert } = useAlert();
+    const { appearance, setAppearance } = useAppearance();
 
     const [showClearConfirmation, setShowClearConfirmation] = useState(false); // Track whether clear confirmation window is open or not
     const [isRunning, setIsRunning] = useState(false) // Track if simulation is running or not
@@ -234,7 +238,7 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
         
         
         {mode !== "reaction-diffusion" && (
-            <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid #ccc' }}>
+            <Flex className="circuit-ribbon" direction="row" align="center" justify="between" p="3" style={{ borderBottom: '1px solid var(--chrome-border)', background: 'var(--chrome-bg)' }}>
                 {/* LEFT */}
                 <Flex className="circuit-brand-actions" gap="3" align="center">
                     <Dna color="var(--accent-9)" />
@@ -357,59 +361,21 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
             <Dialog.Root open={showSettingsWindow} onOpenChange={setShowSettingsWindow}>
                 <Dialog.Content maxWidth="400px">
                     <Flex justify="between">
-                        <Dialog.Title mt="1">Circuit Settings</Dialog.Title>
-                        <Dialog.Close><IconButton variant="ghost" color="gray"><X /></IconButton></Dialog.Close>
+                        <Dialog.Title mt="1">Settings</Dialog.Title>
+                        <Dialog.Close><IconButton variant="ghost" color="gray" aria-label="Close settings"><X /></IconButton></Dialog.Close>
                     </Flex>
-                    <Dialog.Description mb="3">Make changes to your project settings.</Dialog.Description>
+                    <Dialog.Description mb="3">Choose how the app looks.</Dialog.Description>
 
-                    <Flex direction="column" gap="3" mt="4">
-                        <Text as="div" weight="bold">Project Name</Text>
-                        <TextField.Root
-                            placeholder="Enter your full name"
-                            mb="2"
-                            value={circuitSettings.projectName ?? ""}
-                            onChange={(e) => setCircuitSettings({ ...circuitSettings, projectName: e.target.value })}
+                    <Flex align="center" justify="between" gap="3" mt="4">
+                        <Flex align="center" gap="2">
+                            {appearance === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+                            <Text as="div" weight="bold">Dark mode</Text>
+                        </Flex>
+                        <Switch
+                            aria-label="Dark mode"
+                            checked={appearance === "dark"}
+                            onCheckedChange={(checked: boolean) => setAppearance(checked ? "dark" : "light")}
                         />
-
-                        {/* simulation duration */}
-                        <Text as="div" weight="bold">Simulation Duration (seconds)</Text>
-                        <Flex gap="3" align="center">
-                            <Slider
-                                id="simulation-duration"
-                                min={1}
-                                max={120}
-                                step={1}
-                                value={[circuitSettings.simulationDuration ?? 10]}
-                                onValueChange={(value) => setCircuitSettings({ ...circuitSettings, simulationDuration: value[0] })}
-                                className="flex-1"
-                            />
-                            <TextField.Root
-                                type="number"
-                                value={circuitSettings.simulationDuration ?? 10}
-                                onChange={(e) => setCircuitSettings({ ...circuitSettings, simulationDuration: parseInt(e.target.value) })}
-                                className="w-20"
-                            />
-                        </Flex>
-
-                        {/* num time points */}
-                        <Text as="div" weight="bold">Number of Time Points</Text>
-                        <Flex gap="3" align="center">
-                            <Slider
-                                id="time-points"
-                                min={1}
-                                max={100}
-                                step={1}
-                                value={[circuitSettings.numTimePoints ?? 10]}
-                                onValueChange={(value) => setCircuitSettings({ ...circuitSettings, numTimePoints: value[0] })}
-                                className="flex-1"
-                            />
-                            <TextField.Root
-                                type="number"
-                                value={circuitSettings.numTimePoints ?? 10}
-                                onChange={(e) => setCircuitSettings({ ...circuitSettings, numTimePoints: parseInt(e.target.value) })}
-                                className="w-20"
-                            />
-                        </Flex>
                     </Flex>
 
                     <Flex justify="end" mt="5"><Dialog.Close><Button size="3">Close</Button></Dialog.Close></Flex>
