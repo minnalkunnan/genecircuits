@@ -280,11 +280,14 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                 </Box>
 
                 <Flex className="circuit-sim-actions" gap="2" align="center">
-                    <Tooltip content="Hill Coefficient Matrix">
-                        <IconButton aria-label="Hill coefficient matrix" variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
-                            <Grid3X3 size={20} />
-                        </IconButton>
-                    </Tooltip>
+                    {/* Brick Bench sets Hill coefficients per gene, so the matrix is only for the canvas builder */}
+                    {mode === "canvas" && (
+                        <Tooltip content="Hill Coefficient Matrix">
+                            <IconButton aria-label="Hill coefficient matrix" variant="outline" size="3" color="gray" onClick={() => setShowHillCoeffMatrix(!showHillCoeffMatrix)}>
+                                <Grid3X3 size={20} />
+                            </IconButton>
+                        </Tooltip>
+                    )}
 
                     <Button
                         className="circuit-run-button"
