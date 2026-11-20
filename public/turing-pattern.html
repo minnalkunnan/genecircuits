@@ -77,9 +77,10 @@
 
     /* Top ribbon — matches Ribbon Flex p="3" + border #ccc */
     header {
-      display: flex;
+      display: grid;
+      /* equal side columns keep the title field centered on the page */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 400px) minmax(0, 1fr);
       align-items: center;
-      justify-content: space-between;
       padding: 8px 16px;
       min-height: 56px;
       color: #111;
@@ -118,16 +119,16 @@
     }
 
     .h-center {
-      flex: 1;
       display: flex;
       justify-content: center;
-      padding: 0 16px;
+      padding: 0;
       min-width: 0;
     }
 
     .h-right {
       display: flex;
       align-items: center;
+      justify-self: end;
       gap: 8px;
       flex: 0 0 auto;
     }
@@ -714,6 +715,27 @@
 
     #sim-canvas.seed-cursor {
       cursor: crosshair;
+    }
+
+    /* Medium: not enough room for one row, so the title drops to its own line */
+    @media (min-width: 801px) and (max-width: 1240px) {
+      header {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "brand actions"
+          "project project";
+        row-gap: 8px;
+      }
+
+      .h-left { grid-area: brand; }
+      .h-right { grid-area: actions; }
+
+      .h-center {
+        grid-area: project;
+        width: 100%;
+        max-width: 400px;
+        justify-self: center;
+      }
     }
 
     @media (max-width: 800px) {

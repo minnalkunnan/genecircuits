@@ -273,6 +273,52 @@ body,
   background: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc 24%);
 }
 
+/* Wide: equal side columns keep the project name centered on the page */
+@media (min-width: 1241px) {
+  .circuit-ribbon {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 400px) minmax(0, 1fr);
+  }
+
+  .circuit-project-name {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .circuit-sim-actions {
+    justify-self: end;
+  }
+}
+
+/* Medium: not enough room for one row, so the project name drops to its own line */
+@media (min-width: 801px) and (max-width: 1240px) {
+  .circuit-ribbon {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand simulation"
+      "project project";
+    row-gap: 8px !important;
+  }
+
+  .circuit-brand-actions {
+    grid-area: brand;
+  }
+
+  .circuit-project-name {
+    grid-area: project;
+    justify-self: center;
+    width: 100%;
+    max-width: 400px !important;
+    margin: 0 !important;
+  }
+
+  .circuit-sim-actions {
+    grid-area: simulation;
+    justify-self: end;
+  }
+}
+
 @media (max-width: 800px) {
   .circuit-ribbon {
     display: grid !important;

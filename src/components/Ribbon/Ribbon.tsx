@@ -289,19 +289,22 @@ const TopRibbon: React.FC<{ mode?: SimulatorMode; onModeChange?: (mode: Simulato
                         </Tooltip>
                     )}
 
-                    <Button
-                        className="circuit-run-button"
-                        variant="solid"
-                        size="3"
-                        aria-label={isRunning ? "Stop simulation" : "Run simulation"}
-                        onClick={handlePlayClick}
-                        disabled={false}
-                        style={isRunning ? { backgroundColor: '#e74c3c', borderColor: '#e74c3c' } : {}}
-                    >
-                        {isRunning
-                            ? (<><X size={20} /><span className="run-button-label">Stop</span></>)
-                            : (<><Play size={20} /><span className="run-button-label">Run Simulation</span></>)}
-                    </Button>
+                    {/* Running the gene circuit simulation only works from the node canvas; Brick Bench has no run action, and Reaction-Diffusion has its own */}
+                    {mode === "canvas" && (
+                        <Button
+                            className="circuit-run-button"
+                            variant="solid"
+                            size="3"
+                            aria-label={isRunning ? "Stop simulation" : "Run simulation"}
+                            onClick={handlePlayClick}
+                            disabled={false}
+                            style={isRunning ? { backgroundColor: '#e74c3c', borderColor: '#e74c3c' } : {}}
+                        >
+                            {isRunning
+                                ? (<><X size={20} /><span className="run-button-label">Stop</span></>)
+                                : (<><Play size={20} /><span className="run-button-label">Run Simulation</span></>)}
+                        </Button>
+                    )}
 
                     <Tooltip content={showOutputWindow ? "Close Output" : "Show Output"}>
                         <IconButton aria-label={showOutputWindow ? "Close simulation output" : "Show simulation output"} variant="outline" size="3" color="gray" onClick={() => setShowOutputWindow(!showOutputWindow)}>
